@@ -1,0 +1,408 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>말씀따라 흐르는 샘물</title>
+<style>
+  :root{ --gap:16px; --border:#e6e6e6; --radius:14px; --overlay:rgba(255,255,255,.78); }
+  /* 배경 + 오버레이 */
+  body{
+    margin:0;color:#222;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;
+    background:url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?w=1600&auto=format&fit=crop') center/cover no-repeat fixed;
+  }
+  body::before{content:"";position:fixed;inset:0;background:linear-gradient(0deg,rgba(255,255,255,.9),rgba(255,255,255,.9));z-index:-1}
+
+  .wrap{max-width:1200px;margin:0 auto;padding:clamp(12px,2vw,24px)}
+  header.site{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:12px}
+  .title h1{margin:0;font-size:clamp(18px,2.6vw,26px)}
+  .subtitle{opacity:.85;font-size:14px}
+
+  /* 연·월 펼침식 */
+  .ym{position:relative;display:flex;align-items:center;gap:10px}
+  .ym .label{font-weight:700}
+  .ym button.trigger{
+    border:1px solid var(--border);background:#fff;border-radius:10px;padding:8px 12px;cursor:pointer;font-weight:600;
+  }
+  .ym .panel{
+    position:absolute;right:0;top:calc(100% + 8px);background:#fff;border:1px solid var(--border);border-radius:12px;
+    box-shadow:0 14px 28px rgba(0,0,0,.12);padding:12px;min-width:260px;display:none;z-index:20
+  }
+  .ym .panel.show{display:block}
+  .ym .row{display:flex;gap:8px;align-items:center;margin:6px 0;flex-wrap:wrap}
+  .ym select,.ym button.action{padding:8px 10px;border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer}
+
+  .grid{display:grid;grid-template-columns:1.15fr 1fr;gap:var(--gap)}
+  @media (max-width:900px){.grid{grid-template-columns:1fr}}
+
+  .card{
+    background:var(--overlay);backdrop-filter:blur(1.5px);
+    border:1px solid var(--border);border-radius:var(--radius);padding:14px;
+    box-shadow:0 8px 22px rgba(0,0,0,.06);
+  }
+
+  /* 왼쪽 소개/오늘의 틀 */
+  .hero h2{margin:4px 0 8px}
+  .hero .tts{margin-top:10px;display:flex;gap:8px;flex-wrap:wrap}
+  .btn{padding:8px 12px;border:1px solid var(--border);border-radius:10px;background:#fff;cursor:pointer}
+
+  /* 달력 */
+  .calendar{border:1px solid var(--border);border-radius:12px;overflow:hidden;background:#fff}
+  .cal-head,.row{display:grid;grid-template-columns:repeat(7,1fr)}
+  .cal-head div{background:#f7f7f7;padding:10px;font-weight:700;border-bottom:1px solid var(--border);text-align:center}
+  .cell{
+    min-height:92px;border-bottom:1px solid var(--border);border-right:1px solid var(--border);
+    padding:8px;position:relative;cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;background:#fff
+  }
+  .row .cell:last-child{border-right:none}
+  .cell:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(0,0,0,.06)}
+  .date{font-size:12px;opacity:.65}
+  .title{display:block;margin-top:6px;font-weight:700;line-height:1.2}
+  .ref{display:block;font-size:12px;opacity:.85;margin-top:2px}
+  .today{background:#f5fbff;outline:2px solid #4b9fff;outline-offset:-2px}
+
+  /* 확대 패널(그 칸만 크게) */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.35);display:none;z-index:40}
+  .overlay.show{display:block}
+  .sheet{
+    position:fixed;inset:auto 0 0 0;max-height:82vh;background:#fff;border-top-left-radius:18px;border-top-right-radius:18px;
+    box-shadow:0 -18px 44px rgba(0,0,0,.25);transform:translateY(100%);transition:transform .22s ease;z-index:50;overflow:auto;
+  }
+  .sheet.show{transform:translateY(0)}
+  .sheet .bar{display:flex;align-items:center;justify-content:space-between;padding:12px;border-bottom:1px solid #eee;position:sticky;top:0;background:#fff;z-index:10}
+  .sheet .content{padding:14px 14px 22px}
+  .badge{display:inline-flex;gap:8px;align-items:center}
+  .chip{border:1px solid #ddd;border-radius:999px;padding:4px 8px;font-size:12px;background:#fafafa}
+
+  .section{border:1px solid #eee;border-radius:12px;padding:12px;margin:10px 0;background:#fff}
+  .section h4{margin:0 0 8px}
+  .section pre,.section textarea{
+    width:100%;border:1px solid #eee;background:#fcfcfc;border-radius:8px;padding:10px;line-height:1.55;
+    white-space:pre-wrap;word-break:break-word;font-family:inherit;font-size:14px;color:#222;
+  }
+  .section textarea{min-height:120px}
+
+  .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+  .toolbar .btn.primary{background:#111;color:#fff;border-color:#111}
+  .toolbar .btn.ghost{background:#fff}
+
+  .muted{opacity:.7;font-size:13px}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header class="site">
+      <div class="title">
+        <h1>말씀따라 흐르는 샘물</h1>
+        <div class="subtitle">달력 요약 묵상집 · 시리즈형 수집</div>
+      </div>
+
+      <!-- 연·월 펼침식 -->
+      <div class="ym" id="ym">
+        <span class="label" id="monthLabel">2025년 9월</span>
+        <button class="trigger" id="ymTrigger" type="button">연·월 선택 ▾</button>
+        <div class="panel" id="ymPanel" aria-label="연월 선택">
+          <div class="row">
+            <label>연도
+              <select id="yearSel"></select>
+            </label>
+          </div>
+          <div class="row">
+            <label>월
+              <select id="monthSel"></select>
+            </label>
+          </div>
+          <div class="row">
+            <button class="action" id="goToday">오늘</button>
+            <button class="action" id="closeYm">닫기</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <main class="grid">
+      <!-- 왼쪽 소개/오늘의 틀(샘플) -->
+      <section class="card hero">
+        <h2>소개</h2>
+        <p class="muted">달력에서 날짜를 누르면 해당 날짜의 <b>제목·본문·요약설교·시·묵상글</b>을 원문 그대로 펼쳐 확인·편집할 수 있습니다. 저장은 이 기기의 <code>localStorage</code>에 보관됩니다.</p>
+        <div class="tts">
+          <button class="btn" onclick="speakDay()">▶ 오늘 읽어주기</button>
+          <button class="btn" onclick="stopSpeak()">■ 정지</button>
+        </div>
+      </section>
+
+      <!-- 오른쪽 달력 -->
+      <section class="card">
+        <div class="calendar" id="calendar"></div>
+      </section>
+    </main>
+  </div>
+
+  <!-- 확대 패널 -->
+  <div class="overlay" id="overlay"></div>
+  <aside class="sheet" id="sheet" aria-modal="true" role="dialog">
+    <div class="bar">
+      <div class="badge">
+        <strong id="sheetDate">YYYY-MM-DD</strong>
+        <span class="chip" id="sheetRef">본문</span>
+      </div>
+      <div class="toolbar">
+        <button class="btn" id="editBtn">편집</button>
+        <button class="btn" id="addSectionBtn">섹션 추가</button>
+        <button class="btn primary" id="saveBtn" style="display:none">저장</button>
+        <button class="btn ghost" id="cancelBtn" style="display:none">취소</button>
+        <button class="btn" id="readBtn">읽기</button>
+        <button class="btn" id="openBtn" title="블로그/별도 링크로 열기">새 창</button>
+        <button class="btn" id="closeBtn">닫기</button>
+      </div>
+    </div>
+    <div class="content">
+      <h3 id="sheetTitle" style="margin:0 0 8px">제목</h3>
+      <div id="sections"></div>
+      <p class="muted">* “편집”을 누르면 각 섹션이 입력창으로 바뀝니다. 저장 시 이 기기에 보관됩니다.</p>
+    </div>
+  </aside>
+
+<script>
+/* ========= 유틸 ========= */
+function pad(n){return (n<10?'0':'')+n;}
+function ymd(d){return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;}
+function today(){return new Date();}
+function clampMonth(y,m){ if(m<0){y--;m=11}else if(m>11){y++;m=0} return [y,m]; }
+
+/* ========= 샘플 데이터 ========= */
+const seed = {
+  "2025-09-10":{
+    title:"신령한 생명의 근원",
+    ref:"겔 47:1-2",
+    url:"",
+    sections:[
+      {type:"sermon",label:"요약설교",content:`성전 문지방에서 흘러나온 물이 점점 깊어져 큰 강이 되고, 메마른 곳을 소생시킨다. 은혜로 시작된 흐름이 황폐한 자리까지 회복한다.`},
+      {type:"poem",label:"시",content:`문턱 아래 숨어 흐르던 물이
+발목을 적시고 무릎을 감싸
+마침내 발 닿지 않는 깊이에서
+주께서 나를 안으셨다`},
+      {type:"devo",label:"묵상글",content:`나는 건조함만 탓했다. 그러나 생수는 이미 흘렀다. 오늘, 메마름을 숨기지 않고 보이고 그 위에 물을 대자.`}
+    ]
+  },
+  "2025-09-12":{
+    title:"은혜와 진리",
+    ref:"요 1:14",
+    url:"",
+    sections:[
+      {type:"sermon",label:"요약설교",content:`말씀이 육신이 되어 우리 가운데 거하심은 은혜와 진리의 충만이다. 품음과 바로섬이 함께 우리를 새롭게 한다.`},
+      {type:"poem",label:"시",content:`사랑은 내려와 장막을 치고
+참됨으로 나를 부르셨다
+허물의 그림자 지나
+빛으로 일으키셨다`},
+      {type:"devo",label:"묵상글",content:`나는 은혜만, 혹은 진리만을 구했다. 오늘은 둘을 함께 베풀자.`}
+    ]
+  }
+};
+
+/* ========= 상태 ========= */
+let state = { y: today().getFullYear(), m: today().getMonth() };
+
+const calendarEl = document.getElementById('calendar');
+const monthLabel = document.getElementById('monthLabel');
+const overlay = document.getElementById('overlay');
+const sheet = document.getElementById('sheet');
+const sheetDate = document.getElementById('sheetDate');
+const sheetRef = document.getElementById('sheetRef');
+const sheetTitle = document.getElementById('sheetTitle');
+const sectionsEl = document.getElementById('sections');
+const editBtn = document.getElementById('editBtn');
+const addSectionBtn = document.getElementById('addSectionBtn');
+const saveBtn = document.getElementById('saveBtn');
+const cancelBtn = document.getElementById('cancelBtn');
+const readBtn = document.getElementById('readBtn');
+const openBtn = document.getElementById('openBtn');
+const closeBtn = document.getElementById('closeBtn');
+
+/* ========= 연·월 패널 ========= */
+const ym = document.getElementById('ym');
+const ymTrigger = document.getElementById('ymTrigger');
+const ymPanel = document.getElementById('ymPanel');
+const closeYm = document.getElementById('closeYm');
+const goTodayBtn = document.getElementById('goToday');
+const yearSel = document.getElementById('yearSel');
+const monthSel = document.getElementById('monthSel');
+
+function initYM(){
+  const now = today();
+  const Y0 = now.getFullYear();
+  yearSel.innerHTML=''; monthSel.innerHTML='';
+  for(let y=Y0-5;y<=Y0+5;y++){
+    const o=document.createElement('option'); o.value=y; o.textContent=`${y}년`; if(y===state.y) o.selected=true; yearSel.appendChild(o);
+  }
+  for(let m=1;m<=12;m++){
+    const o=document.createElement('option'); o.value=m-1; o.textContent=`${m}월`; if(m-1===state.m) o.selected=true; monthSel.appendChild(o);
+  }
+}
+ymTrigger.onclick = ()=>{ initYM(); ymPanel.classList.toggle('show'); };
+closeYm.onclick = ()=> ymPanel.classList.remove('show');
+document.addEventListener('click',(e)=>{ if(!ym.contains(e.target)) ymPanel.classList.remove('show'); });
+
+yearSel.addEventListener('change', ()=>{
+  state.y = +yearSel.value; draw();
+});
+monthSel.addEventListener('change', ()=>{
+  state.m = +monthSel.value; draw();
+});
+goTodayBtn.onclick = ()=>{
+  const n=today(); state.y=n.getFullYear(); state.m=n.getMonth(); initYM(); draw();
+};
+
+/* ========= 로컬 스토리지 ========= */
+function lsKey(d){ return `sow:${d}`; }
+function loadDay(d){ const k=lsKey(d); const raw=localStorage.getItem(k); if(raw){ try{return JSON.parse(raw)}catch{} } return seed[d]||null; }
+function saveDay(d, val){ localStorage.setItem(lsKey(d), JSON.stringify(val)); }
+
+/* ========= 렌더 달력 ========= */
+function draw(){
+  const y=state.y, m=state.m;
+  monthLabel.textContent = `${y}년 ${m+1}월`;
+  calendarEl.innerHTML='';
+  const head = document.createElement('div'); head.className='cal-head';
+  '일 월 화 수 목 금 토'.split(' ').forEach(d=>{const div=document.createElement('div');div.textContent=d;head.appendChild(div);});
+  calendarEl.appendChild(head);
+
+  const first = new Date(y,m,1);
+  const start = first.getDay();
+  const lastD = new Date(y,m+1,0).getDate();
+  const tKey = ymd(today());
+  let day=1;
+
+  for(let r=0;r<6;r++){
+    const row = document.createElement('div'); row.className='row';
+    for(let c=0;c<7;c++){
+      const cell = document.createElement('div'); cell.className='cell';
+      if((r===0 && c<start) || day>lastD){
+        cell.style.background='#fafafa';
+      }else{
+        const key = `${y}-${pad(m+1)}-${pad(day)}`;
+        if(key===tKey) cell.classList.add('today');
+
+        const dEl = document.createElement('div'); dEl.className='date'; dEl.textContent=day;
+        cell.appendChild(dEl);
+
+        const item = loadDay(key);
+        if(item){
+          const t = document.createElement('span'); t.className='title'; t.textContent=item.title || '제목';
+          const r = document.createElement('span'); r.className='ref'; r.textContent=item.ref || '';
+          cell.appendChild(t); cell.appendChild(r);
+        }
+        cell.addEventListener('click', ()=> openSheet(key));
+        day++;
+      }
+      row.appendChild(cell);
+    }
+    calendarEl.appendChild(row);
+  }
+}
+
+/* ========= 확대 시트 ========= */
+let currentKey=null;
+let editing=false;
+
+function openSheet(key){
+  currentKey=key;
+  const d = loadDay(key) || {title:'',ref:'',url:'',sections:[]};
+  sheetDate.textContent = key;
+  sheetRef.textContent = d.ref || '본문';
+  sheetTitle.textContent = d.title || '제목 미정';
+  buildSections(d.sections, false);
+  overlay.classList.add('show'); sheet.classList.add('show');
+  setEditing(false);
+  openBtn.onclick = ()=>{ if(d.url){ window.open(d.url,'_blank'); } else { alert('연결된 외부 링크가 없습니다.'); } };
+  readBtn.onclick = ()=> ttsRead(d);
+}
+function closeSheet(){
+  overlay.classList.remove('show'); sheet.classList.remove('show'); currentKey=null; setEditing(false);
+}
+overlay.onclick = closeSheet; closeBtn.onclick = closeSheet;
+
+function setEditing(flag){
+  editing=flag;
+  editBtn.style.display = flag ? 'none':'inline-block';
+  addSectionBtn.style.display = 'inline-block';
+  saveBtn.style.display = flag ? 'inline-block':'none';
+  cancelBtn.style.display = flag ? 'inline-block':'none';
+}
+editBtn.onclick = ()=>{ setEditing(true); const d = loadDay(currentKey)||{sections:[]}; buildSections(d.sections, true); };
+cancelBtn.onclick = ()=>{ const d = loadDay(currentKey)||{sections:[]}; buildSections(d.sections, false); setEditing(false); };
+addSectionBtn.onclick = ()=>{
+  if(!editing){ setEditing(true); const d = loadDay(currentKey)||{sections:[]}; buildSections(d.sections, true); }
+  const wrap = document.getElementById('sections');
+  wrap.appendChild(sectionEditor({type:'devo',label:'묵상글',content:''}));
+};
+saveBtn.onclick = ()=>{
+  const d = loadDay(currentKey)||{title:'',ref:'',url:'',sections:[]};
+  const nodes = document.querySelectorAll('.section[data-edit="1"]');
+  const arr=[];
+  nodes.forEach(n=>{
+    const type = n.querySelector('[name="type"]').value;
+    const label= n.querySelector('[name="label"]').value.trim() || labelFromType(type);
+    const content = n.querySelector('textarea').value;
+    arr.push({type,label,content});
+  });
+  d.sections = arr;
+  saveDay(currentKey, d);
+  buildSections(d.sections, false);
+  setEditing(false);
+  draw();
+};
+
+/* ====== 섹션 렌더 ====== */
+function labelFromType(t){ if(t==='sermon')return'요약설교'; if(t==='poem')return'시'; if(t==='devo')return'묵상글'; return '섹션'; }
+function sectionView(sec){
+  const box = document.createElement('div'); box.className='section';
+  box.innerHTML = `<h4>${sec.label||labelFromType(sec.type)}</h4><pre>${sec.content||''}</pre>`;
+  return box;
+}
+function sectionEditor(sec){
+  const box = document.createElement('div'); box.className='section'; box.dataset.edit="1";
+  box.innerHTML = `
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:6px">
+      <select name="type">
+        <option value="sermon" ${sec.type==='sermon'?'selected':''}>요약설교</option>
+        <option value="poem" ${sec.type==='poem'?'selected':''}>시</option>
+        <option value="devo" ${sec.type==='devo'?'selected':''}>묵상글</option>
+      </select>
+      <input name="label" value="${(sec.label||labelFromType(sec.type))}" 
+             style="padding:6px 8px;border:1px solid #ddd;border-radius:8px" />
+      <button class="btn" onclick="this.closest('.section').remove()">삭제</button>
+    </div>
+    <textarea placeholder="내용을 입력하세요...">${sec.content||''}</textarea>
+  `;
+  return box;
+}
+function buildSections(list, edit){
+  sectionsEl.innerHTML='';
+  (list&&list.length?list:[{type:'sermon',label:'요약설교',content:''}]).forEach(sec=>{
+    sectionsEl.appendChild(edit? sectionEditor(sec): sectionView(sec));
+  });
+}
+
+/* ====== TTS ====== */
+let utter;
+function ttsRead(day){
+  stopSpeak();
+  const parts=[];
+  parts.push((day.title||'')); if(day.ref) parts.push(day.ref);
+  (day.sections||[]).forEach(s=>{ parts.push(`${labelFromType(s.type)}:`); parts.push(s.content||''); });
+  const text = parts.join('. ');
+  utter = new SpeechSynthesisUtterance(text); utter.lang='ko-KR'; speechSynthesis.speak(utter);
+}
+function speakDay(){ const key = ymd(today()); const d = loadDay(key) || {title:'',ref:'',sections:[]}; ttsRead(d); }
+function stopSpeak(){ if(speechSynthesis.speaking){ speechSynthesis.cancel(); } }
+
+/* ====== 시작 & URL ?date= ====== */
+(function initFromQuery(){
+  const p = new URLSearchParams(location.search); const q = p.get('date');
+  if(q && /^\d{4}-\d{2}-\d{2}$/.test(q)){ const [Y,M] = q.split('-'); state.y=+Y; state.m=(+M)-1; }
+})();
+draw();
+</script>
+</body>
+</html>
