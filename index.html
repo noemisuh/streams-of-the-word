@@ -1,31 +1,410 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="ko">
 <head>
-<meta charset="utf-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1"/>
-<title>말씀따라 흐르는 샘물</title>
-<style>
-  body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif;background:#fafafa;color:#222}
-  .wrap{min-height:100dvh;display:grid;place-items:center;padding:24px}
-  .card{max-width:680px;width:100%;background:#fff;border:1px solid #eee;border-radius:16px;padding:24px;box-shadow:0 8px 24px rgba(0,0,0,.04)}
-  h1{margin:0 0 8px;font-size:24px}
-  p{margin:6px 0 0;line-height:1.6}
-  .hint{margin-top:12px;font-size:14px;opacity:.75}
-  .btns{margin-top:16px;display:flex;gap:8px;flex-wrap:wrap}
-  a.button{padding:10px 14px;border:1px solid #ddd;border-radius:10px;text-decoration:none;color:#111;background:#f8f8f8}
-</style>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>말씀따라 흐르는 샘물 · 단일 파일 템플릿</title>
+  <style>
+    :root{
+      --bg:#f8fafc;          /* 전체 배경 */
+      --paper:#ffffff;        /* 카드 배경 */
+      --ink:#0f172a;          /* 본문 글색 */
+      --muted:#64748b;        /* 보조 글색 */
+      --line:#e2e8f0;         /* 경계선 */
+      --brand:#2563eb;        /* 포인트 */
+      --brand-ghost:#dbeafe;  /* 포인트 연색 */
+      --accent:#22c55e;       /* 저장 성공 등 */
+      --warn:#f97316;         /* 경고색 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Malgun Gothic,sans-serif;
+      color:var(--ink); background:linear-gradient(180deg,#f1f5f9, var(--bg));
+    }
+    .wrap{max-width:1100px; margin:32px auto; padding:0 16px}
+
+    /* 제목영역 */
+    header{
+      display:flex; gap:16px; align-items:center; justify-content:space-between; margin-bottom:20px
+    }
+    .title{
+      display:flex; align-items:center; gap:12px
+    }
+    .badge{font-size:12px; color:var(--brand); background:var(--brand-ghost); padding:4px 8px; border-radius:999px}
+    h1{font-size:clamp(20px,4vw,28px); margin:0; letter-spacing:0.2px}
+
+    /* 레이아웃 */
+    .grid{
+      display:grid; grid-template-columns: 1.3fr 0.9fr; gap:18px;
+    }
+    @media (max-width: 900px){
+      .grid{grid-template-columns:1fr}
+    }
+
+    .card{background:var(--paper); border:1px solid var(--line); border-radius:16px; box-shadow:0 4px 16px rgba(15,23,42,.06)}
+    .card .hd{padding:14px 16px; border-bottom:1px solid var(--line); display:flex; align-items:center; justify-content:space-between}
+    .card .bd{padding:16px}
+
+    /* 좌측: 본문/에디터 */
+    .section + .section{margin-top:16px}
+    .section label{display:block; font-size:12px; color:var(--muted); margin-bottom:6px}
+    input[type="text"], textarea{
+      width:100%; border:1px solid var(--line); border-radius:12px; padding:10px 12px; font:inherit; background:#fff;
+    }
+    textarea{min-height:120px; resize:vertical; line-height:1.6}
+    .row{display:grid; grid-template-columns:1fr 1fr; gap:10px}
+    @media (max-width:700px){.row{grid-template-columns:1fr}}
+
+    .toolbar{display:flex; flex-wrap:wrap; gap:8px}
+    button, .btn{
+      border:1px solid var(--line); background:#fff; color:var(--ink); padding:8px 12px; border-radius:999px; cursor:pointer; font:inherit
+    }
+    button.primary{background:var(--brand); color:#fff; border-color:var(--brand)}
+    button.ghost{background:var(--brand-ghost); color:var(--brand)}
+    .hint{font-size:12px; color:var(--muted)}
+    .ok{color:var(--accent)}
+
+    /* 우측: 달력 */
+    .calendar-head{display:flex; gap:8px; align-items:center; justify-content:space-between}
+    .calendar-head .ym{display:flex; align-items:center; gap:8px}
+    select{border:1px solid var(--line); background:#fff; border-radius:10px; padding:6px 10px; font:inherit}
+
+    .cal-grid{display:grid; grid-template-columns:repeat(7,1fr); border-top:1px solid var(--line); border-left:1px solid var(--line); border-radius:12px; overflow:hidden}
+    .cal-grid div{border-right:1px solid var(--line); border-bottom:1px solid var(--line); min-height:84px; padding:6px 6px 8px; position:relative}
+    .cal-grid .dow{background:#f8fafc; font-size:12px; color:var(--muted); min-height:auto; padding:8px; text-align:center; font-weight:600}
+    .cal-grid .day{background:#fff; cursor:pointer}
+    .cal-grid .day:hover{outline:2px solid var(--brand-ghost)}
+    .cal-grid .num{font-size:12px; color:var(--muted)}
+    .cal-grid .title{display:block; font-size:12px; margin-top:4px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+    .cal-grid .ref{display:block; font-size:11px; color:var(--muted)}
+    .day.today{background:#fcfffe}
+    .day.selected{outline:2px solid var(--brand)}
+
+    .footer-note{margin-top:18px; font-size:12px; color:var(--muted)}
+
+    /* 읽어주기 */
+    .tts-wrap{display:flex; flex-wrap:wrap; gap:8px; align-items:center}
+    .tts-wrap select{min-width:180px}
+  </style>
 </head>
 <body>
-  <main class="wrap">
-    <section class="card">
-      <h1>말씀따라 흐르는 샘물</h1>
-      <p>시리즈/주제별로 글을 모으는 공간입니다. 지금은 베이스만 세워두었습니다.</p>
-      <p class="hint">필요할 때마다 하나씩 추가합니다.</p>
-      <div class="btns">
-        <a class="button" href="#" onclick="alert('다음 단계에서 채워집니다 🙂');return false;">시리즈 목록</a>
-        <a class="button" href="#" onclick="alert('다음 단계에서 채워집니다 🙂');return false;">최근 글</a>
+  <div class="wrap">
+    <header>
+      <div class="title">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"><path d="M12 22c4.97 0 9-3.582 9-8s-4.03-8-9-8-9 3.582-9 8c0 2.138.85 4.09 2.26 5.63.244.262.364.61.328.964l-.142 1.334a1 1 0 00.1.568c.226.45.77.6 1.196.33l1.144-.724a1.5 1.5 0 011.074-.18A10.9 10.9 0 0012 22z" fill="#2563eb"/></svg>
+        <h1>말씀따라 흐르는 샘물</h1>
+        <span class="badge">블로그 · 깃허브 단일 파일</span>
       </div>
-    </section>
-  </main>
+      <div class="toolbar">
+        <button id="btnEdit" class="ghost" type="button">편집 모드</button>
+        <button id="btnSave" class="primary" type="button">저장하기</button>
+        <button id="btnClear" type="button" title="현재 날짜 글만 초기화">초기화</button>
+        <button id="btnExport" type="button" title="이번 달 전체 내보내기(JSON)">내보내기</button>
+        <label class="btn" for="importFile" title="JSON 가져오기">가져오기<input id="importFile" type="file" accept="application/json" hidden></label>
+      </div>
+    </header>
+
+    <div class="grid">
+      <!-- 좌: 글 본문/에디터 -->
+      <article class="card" id="editorCard" aria-live="polite">
+        <div class="hd">
+          <strong id="dateLabel">선택된 날짜 없음</strong>
+          <span class="hint">※ 날짜를 달력에서 고르세요. 저장은 브라우저(LocalStorage)에 됩니다.</span>
+        </div>
+        <div class="bd">
+          <div class="row">
+            <div class="section">
+              <label for="fldTitle">주제 제목</label>
+              <input type="text" id="fldTitle" placeholder="예) 신령한 생명의 근원" disabled>
+            </div>
+            <div class="section">
+              <label for="fldRef">본문(성경 약자)</label>
+              <input type="text" id="fldRef" placeholder="예) 요 7:37-39" disabled>
+            </div>
+          </div>
+
+          <div class="section">
+            <label for="fldSummary">요약설교</label>
+            <textarea id="fldSummary" placeholder="핵심 요약, 적용 포인트" disabled></textarea>
+          </div>
+
+          <div class="section">
+            <label for="fldPoem">시</label>
+            <textarea id="fldPoem" placeholder="12단 이상 충분히" disabled></textarea>
+          </div>
+
+          <div class="section">
+            <label for="fldMeditation">묵상글</label>
+            <textarea id="fldMeditation" placeholder="본문과 주제를 벗어나지 않게 풍성하게" disabled></textarea>
+          </div>
+
+          <div class="section">
+            <div class="toolbar">
+              <button id="btnAddSection" type="button">섹션 추가</button>
+              <span class="hint">필요하면 사용자 정의 섹션을 더해 보세요.</span>
+            </div>
+            <div id="customSections"></div>
+          </div>
+
+          <hr style="margin:20px 0;border:none;border-top:1px solid var(--line)">
+
+          <div class="section">
+            <label>읽어주기 (TTS)</label>
+            <div class="tts-wrap">
+              <select id="selRead">
+                <option value="title">주제 제목</option>
+                <option value="ref">본문(성경 약자)</option>
+                <option value="summary">요약설교</option>
+                <option value="poem">시</option>
+                <option value="meditation">묵상글</option>
+              </select>
+              <button id="btnSpeak" type="button">읽기 시작</button>
+              <button id="btnStop" type="button">정지</button>
+              <span class="hint">브라우저의 음성합성(Web Speech)을 사용합니다.</span>
+            </div>
+          </div>
+
+        </div>
+      </article>
+
+      <!-- 우: 달력/날짜 선택 -->
+      <aside class="card">
+        <div class="hd calendar-head">
+          <div class="ym">
+            <select id="selYear" aria-label="년도"></select>
+            <select id="selMonth" aria-label="월"></select>
+          </div>
+          <div class="toolbar">
+            <button id="btnToday" class="ghost" type="button">오늘로</button>
+          </div>
+        </div>
+        <div class="bd">
+          <div class="cal-grid" id="calGrid" role="grid" aria-label="달력"></div>
+          <div class="footer-note">각 칸은 “제목 1줄 + 본문 약자”로 표시됩니다. 클릭하면 좌측에 내용이 열립니다.</div>
+        </div>
+      </aside>
+    </div>
+
+    <p class="footer-note" style="text-align:center">이 파일 하나만 깃허브/블로그에 올려두고 날짜별로 복사·활용하시면 됩니다. (저장 위치: 브라우저 LocalStorage)</p>
+  </div>
+
+  <script>
+    /**************
+     * 저장 포맷 *
+     * key: FLOWSPRING_YYYY-MM-DD
+     * value(JSON): { title, ref, summary, poem, meditation, customs: [{label, text}], y, m, d }
+     **************/
+    const $ = sel => document.querySelector(sel);
+    const $$ = sel => Array.from(document.querySelectorAll(sel));
+
+    const now = new Date();
+    let state = { y: now.getFullYear(), m: now.getMonth(), d: now.getDate() };
+    let edit = false; // 편집 모드 토글
+
+    const el = {
+      dateLabel: $('#dateLabel'),
+      title: $('#fldTitle'), ref: $('#fldRef'),
+      summary: $('#fldSummary'), poem: $('#fldPoem'), meditation: $('#fldMeditation'),
+      customWrap: $('#customSections'),
+      btnEdit: $('#btnEdit'), btnSave: $('#btnSave'), btnClear: $('#btnClear'),
+      selYear: $('#selYear'), selMonth: $('#selMonth'), calGrid: $('#calGrid'),
+      btnToday: $('#btnToday'), btnAddSection: $('#btnAddSection'),
+      btnExport: $('#btnExport'), fileImport: $('#importFile'),
+      selRead: $('#selRead'), btnSpeak: $('#btnSpeak'), btnStop: $('#btnStop'),
+    };
+
+    const yRange = (()=>{ const y = now.getFullYear(); return [y-5, y+5]; })();
+
+    function pad(n){return String(n).padStart(2,'0')}
+    function keyOf(y,m,d){return `FLOWSPRING_${y}-${pad(m+1)}-${pad(d)}`}
+
+    function setEditMode(on){
+      edit = on;
+      [el.title, el.ref, el.summary, el.poem, el.meditation].forEach(i=>i.disabled = !on);
+      $$('#customSections textarea, #customSections input[type="text"]').forEach(i=>i.disabled = !on);
+      el.btnEdit.textContent = on ? '보기 모드' : '편집 모드';
+      el.btnEdit.classList.toggle('ghost', !on);
+    }
+
+    function fillYMSelectors(){
+      for(let y=yRange[0]; y<=yRange[1]; y++){
+        const o=document.createElement('option'); o.value=o.textContent=y; el.selYear.appendChild(o);
+      }
+      const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+      months.forEach((m,i)=>{const o=document.createElement('option'); o.value=i; o.textContent=m; el.selMonth.appendChild(o);});
+    }
+
+    function load(y,m,d){
+      state={y,m,d};
+      const k = keyOf(y,m,d);
+      const data = JSON.parse(localStorage.getItem(k) || 'null');
+      el.dateLabel.textContent = `${y}년 ${m+1}월 ${d}일`;
+      el.title.value = data?.title || '';
+      el.ref.value = data?.ref || '';
+      el.summary.value = data?.summary || '';
+      el.poem.value = data?.poem || '';
+      el.meditation.value = data?.meditation || '';
+
+      // 사용자 정의 섹션 렌더
+      el.customWrap.innerHTML = '';
+      (data?.customs || []).forEach((c,i)=> addCustomSection(c.label,c.text));
+
+      highlightSelected();
+    }
+
+    function save(){
+      if(!state.d){ alert('날짜를 먼저 선택하세요.'); return; }
+      const customs = $$('#customSections .csec').map(sec=>({
+        label: sec.querySelector('input').value.trim() || '추가 섹션',
+        text: sec.querySelector('textarea').value
+      }))
+      const data = {
+        title: el.title.value, ref: el.ref.value,
+        summary: el.summary.value, poem: el.poem.value, meditation: el.meditation.value,
+        customs, y: state.y, m: state.m, d: state.d
+      };
+      localStorage.setItem(keyOf(state.y,state.m,state.d), JSON.stringify(data));
+      // 달력 미리보기 업데이트
+      renderCalendar(state.y,state.m);
+      flash('저장되었습니다.');
+    }
+
+    function clearCurrent(){
+      if(!state.d) return;
+      const k = keyOf(state.y,state.m,state.d);
+      if(confirm(`${state.y}-${pad(state.m+1)}-${pad(state.d)} 글을 비울까요?`)){
+        localStorage.removeItem(k);
+        load(state.y,state.m,state.d);
+        renderCalendar(state.y,state.m);
+      }
+    }
+
+    function addCustomSection(label='', text=''){
+      const wrap = document.createElement('div');
+      wrap.className = 'csec section';
+      wrap.innerHTML = `
+        <div class="row">
+          <div>
+            <label>섹션 제목</label>
+            <input type="text" placeholder="예) 예화" value="${label.replaceAll('"','&quot;')}">
+          </div>
+          <div style="display:flex;align-items:flex-end;gap:8px">
+            <button type="button" class="btnDel">삭제</button>
+          </div>
+        </div>
+        <label>내용</label>
+        <textarea placeholder="내용을 입력">${text.replaceAll('<','&lt;')}</textarea>
+      `;
+      wrap.querySelector('.btnDel').addEventListener('click',()=>{
+        if(confirm('이 섹션을 삭제할까요?')) wrap.remove();
+      });
+      el.customWrap.appendChild(wrap);
+      // 편집 상태 반영
+      $$('#customSections textarea, #customSections input[type="text"]').forEach(i=>i.disabled = !edit);
+    }
+
+    function flash(msg){
+      const n = document.createElement('div');
+      n.textContent = msg; n.style.cssText = 'position:fixed;left:50%;top:18px;transform:translateX(-50%);background:#0ea5e9;color:#fff;padding:10px 14px;border-radius:999px;box-shadow:0 6px 20px rgba(2,6,23,.2);z-index:9999';
+      document.body.appendChild(n); setTimeout(()=>n.remove(),1700);
+    }
+
+    function renderCalendar(y,m){
+      el.selYear.value = y; el.selMonth.value = m;
+      const grid = el.calGrid; grid.innerHTML = '';
+      const dows = ['일','월','화','수','목','금','토'];
+      dows.forEach(d=>{const c=document.createElement('div'); c.className='dow'; c.textContent=d; grid.appendChild(c)});
+
+      const first = new Date(y,m,1);
+      const last = new Date(y,m+1,0);
+      const lead = first.getDay();
+      const cells = lead + last.getDate();
+      const today = new Date();
+
+      for(let i=0;i<lead;i++){ const c=document.createElement('div'); c.className='day disabled'; grid.appendChild(c); }
+      for(let d=1; d<=last.getDate(); d++){
+        const c=document.createElement('div'); c.className='day';
+        const num=document.createElement('div'); num.className='num'; num.textContent=d; c.appendChild(num);
+        const k = keyOf(y,m,d);
+        const data = JSON.parse(localStorage.getItem(k) || 'null');
+        const title=document.createElement('span'); title.className='title'; title.textContent = data?.title || '';
+        const ref=document.createElement('span'); ref.className='ref'; ref.textContent = data?.ref || '';
+        c.appendChild(title); c.appendChild(ref);
+        if(today.getFullYear()===y && today.getMonth()===m && today.getDate()===d){ c.classList.add('today'); }
+        c.addEventListener('click',()=>{ load(y,m,d); setEditMode(false); highlightSelected(c); });
+        grid.appendChild(c);
+      }
+      highlightSelected();
+    }
+
+    function highlightSelected(target){
+      $$('#calGrid .day').forEach(c=>c.classList.remove('selected'));
+      if(!state.d) return;
+      const idx = 7 + new Date(state.y,state.m,1).getDay() + (state.d-1); // 7: 요일 헤더 보정
+      const cell = el.calGrid.children[idx];
+      if(cell){ cell.classList.add('selected'); if(target!==false) cell.scrollIntoView({block:'nearest', inline:'nearest'}); }
+    }
+
+    function exportMonth(){
+      const y = parseInt(el.selYear.value,10); const m = parseInt(el.selMonth.value,10);
+      const last = new Date(y,m+1,0).getDate();
+      const pack = { meta:{name:'말씀따라 흐르는 샘물', year:y, month:m+1, exported: new Date().toISOString()}, days:{} };
+      for(let d=1; d<=last; d++){
+        const k=keyOf(y,m,d); const v=localStorage.getItem(k); if(v) pack.days[k]=JSON.parse(v);
+      }
+      const blob = new Blob([JSON.stringify(pack,null,2)], {type:'application/json'});
+      const a=document.createElement('a'); a.href=URL.createObjectURL(blob); a.download=`flowspring_${y}-${pad(m+1)}.json`; a.click(); URL.revokeObjectURL(a.href);
+    }
+
+    function importMonth(file){
+      const reader = new FileReader();
+      reader.onload = (e)=>{
+        try{
+          const pack = JSON.parse(e.target.result);
+          if(!pack.days) throw new Error('형식이 올바르지 않습니다.');
+          Object.entries(pack.days).forEach(([k,v])=> localStorage.setItem(k, JSON.stringify(v)) );
+          renderCalendar(state.y, state.m);
+          flash('가져오기가 완료되었습니다.');
+        }catch(err){ alert('가져오기 실패: '+ err.message); }
+      };
+      reader.readAsText(file, 'utf-8');
+    }
+
+    // 읽어주기(TTS)
+    function speak(text){
+      if(!window.speechSynthesis){ alert('이 브라우저는 음성합성을 지원하지 않습니다.'); return; }
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      u.lang = 'ko-KR';
+      speechSynthesis.speak(u);
+    }
+
+    /********* 이벤트 바인딩 *********/
+    el.btnEdit.addEventListener('click',()=> setEditMode(!edit));
+    el.btnSave.addEventListener('click', save);
+    el.btnClear.addEventListener('click', clearCurrent);
+    el.btnToday.addEventListener('click',()=>{ const t=new Date(); el.selYear.value=t.getFullYear(); el.selMonth.value=t.getMonth(); renderCalendar(t.getFullYear(), t.getMonth()); load(t.getFullYear(),t.getMonth(),t.getDate()); });
+    el.selYear.addEventListener('change',()=> renderCalendar(parseInt(el.selYear.value,10), parseInt(el.selMonth.value,10)) );
+    el.selMonth.addEventListener('change',()=> renderCalendar(parseInt(el.selYear.value,10), parseInt(el.selMonth.value,10)) );
+    el.btnAddSection.addEventListener('click',()=> addCustomSection());
+    el.btnExport.addEventListener('click', exportMonth);
+    el.fileImport.addEventListener('change', e=>{ const f=e.target.files?.[0]; if(f) importMonth(f); e.target.value=''; });
+
+    el.btnSpeak.addEventListener('click',()=>{
+      if(!state.d){ alert('먼저 날짜를 선택하세요.'); return; }
+      const pick = el.selRead.value;
+      const map = { title: el.title.value, ref: el.ref.value, summary: el.summary.value, poem: el.poem.value, meditation: el.meditation.value };
+      speak(map[pick] || '내용이 없습니다.');
+    });
+    el.btnStop.addEventListener('click',()=> speechSynthesis?.cancel());
+
+    // 초기화
+    fillYMSelectors();
+    renderCalendar(state.y, state.m);
+    // 오늘 날짜 자동 로드
+    load(state.y, state.m, state.d);
+    setEditMode(false);
+  </script>
 </body>
 </html>
