@@ -204,6 +204,40 @@
 
   render(year, month);
 })();
+
+/* 2025년 9월: 주소가 있는 날만 활성화 */
+(function fillSep2025Links(){
+  // MONTH_LINKS가 없으면 만들고, 있으면 덮어쓰기 없이 병합
+  window.MONTH_LINKS ??= {};
+  const base = 'https://noemisuh.github.io/streams-of-the-word/2025-09-';
+
+  // 기본은 GitHub Pages 규칙(YYYY-MM-DD.html)로 연결
+  const patch = {
+    '08': base + '08.html',
+    '09': base + '09.html',
+    '10': base + '10.html',
+    '11': base + '11.html',
+    '12': base + '12.html',
+    '13': base + '13.html',
+    '15': base + '15.html',
+    '16': base + '16.html',
+    '19': base + '19.html',
+    '20': base + '20.html'
+  };
+
+  // (예외) 17, 18일은 티스토리 URL로 지정 (이미 올려두신 링크 예시)
+  patch['17'] = 'https://noemisuh.tistory.com/entry/2025-09-17';
+  patch['18'] = 'https://noemisuh.tistory.com/entry/2025-09-18';
+
+  // 병합 적용
+  MONTH_LINKS['2025-09'] = Object.assign({}, MONTH_LINKS['2025-09'] || {}, patch);
+
+  // 화면에 즉시 반영 (렌더가 끝난 이후라면 바로 먹습니다)
+  if (typeof applyMonthLinks === 'function') {
+    // URL 파라미터의 연·월을 따르도록 했던 구조면 그냥 호출
+    requestAnimationFrame(applyMonthLinks);
+  }
+})(); 
 </script>
 </body>
 </html>
