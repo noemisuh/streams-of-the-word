@@ -1,4 +1,3 @@
-
 <!doctype html>
 <html lang="ko">
 <head>
@@ -84,169 +83,170 @@
   </table>
 </div>
 
+<!-- 👇 여기 새 스크립트 블록 전체 붙여넣기 -->
 <script>
-/** ===== 설정 ===== **/
-const DEFAULT_YEAR  = 2025;   // 최초 표시할 연도
-const DEFAULT_MONTH = 9;      // 1~12 (최초 표시할 달: 9=9월)
-const DATA_DIR      = 'data'; // 데이터 폴더 경로
+/* (앞서 보낸 스크립트 전체를 여기 넣기) */
+</script>
+</body>
+</html>
 
-/** ===== 유틸 ===== **/
+
+  
+<script>
+/* ===== 설정 ===== */
+const DATA_DIR = 'data';     // 데이터 폴더
+const DEFAULT_YEAR = 2025;   // 초기 표시 연도
+const DEFAULT_MONTH = 9;      // 초기 표시 월 (1~12)
+
+/* ===== 유틸 ===== */
 const pad2 = n => String(n).padStart(2,'0');
-const qs = (s, r=document) => r.querySelector(s);
-const qsa = (s, r=document) => [...r.querySelectorAll(s)];
-
-/** ===== 데이터 로딩 (월별 → 연간 폴백) ===== **/
-async function tryFetch(path){
-  try{
-    const r = await fetch(`${path}?v=${Date.now()}`); // 캐시 버스터
-    if(!r.ok) return null;
-    return await r.text();
-  }catch(e){ return null; }
-}
-
-// 월별 포맷: "DD|제목|본문(선택)|URL(선택)"
-function parseMonthly(text){
-  return text
-    .split(/\r?\n/)
-    .map(l => l.trim())
-    .filter(l => l && !l.startsWith('#'))
-    .map(l => {
-      const [d, title='', ref='', url=''] = l.split('|').map(s => (s||'').trim());
-      return { day: +d, title, ref, url };
-    });
-}
-
-// 연간 포맷: "MM-DD|제목|본문(선택)|URL(선택)" → 해당 month만 반환
-function parseYearly(text, month){
-  const mm = pad2(month);
-  return text
-    .split(/\r?\n/)
-    .map(l => l.trim())
-    .filter(l => l && !l.startsWith('#') && l.startsWith(mm+'-'))
-    .map(l => {
-      const [md, title='', ref='', url=''] = l.split('|').map(s => (s||'').trim());
-      const day = +(md.split('-')[1]||'0');
-      return { day, title, ref, url };
-    });
-}
-
-async function loadMonthData(year, month){
-  const ymStr       = `${year}-${pad2(month)}`;
-  const monthlyPath = `${DATA_DIR}/${ymStr}.txt`;
-  const yearlyPath  = `${DATA_DIR}/${year}.txt`;
-
-  // 1) 월별 파일 시도
-  let text = await tryFetch(monthlyPath);
-  if(text != null) return parseMonthly(text);
-
-  // 2) 연간 파일에서 해당 월만 필터
-  text = await tryFetch(yearlyPath);
-  if(text != null) return parseYearly(text, month);
-
-  return [];
-}
-
-/** ===== 렌더링 ===== **/
-function buildCalendarGrid(year, month, entries){
-  // entries: [{day, title, ref, url}]
-  const byDay = new Map(entries.map(e => [e.day, e]));
-  const first = new Date(year, month-1, 1);
-  const last  = new Date(year, month, 0);
-  const startWeekday = first.getDay(); // 0=일
-  const totalDays    = last.getDate();
-
-  // 헤더(월 전환 버튼)
-  const header = `
-    <div class="cal-header">
-      <button class="nav prev" data-dir="-1" aria-label="이전 달">◀</button>
-      <div class="ym">${year}년 ${month}월</div>
-      <button class="nav next" data-dir="1" aria-label="다음 달">▶</button>
-    </div>
-  `;
-
-  // 요일
-  const weekdays = ['일','월','화','수','목','금','토']
-    .map(d=>`<div class="dow">${d}</div>`).join('');
-
-  // 빈칸(전월)
-  const blanks = Array(startWeekday).fill('<div class="cell blank"></div>').join('');
-
-  // 날짜 칸
-  const cells = Array.from({length: totalDays}, (_,i)=>{
-    const day = i+1;
-    const e = byDay.get(day) || { title:'', ref:'', url:'' };
-    const titleHTML = e.title
-      ? (e.url ? `<a href="${e.url}" target="_blank" rel="noopener">${e.title}</a>` : e.title)
-      : (e.url ? `<a href="${e.url}" target="_blank" rel="noopener">열기</a>` : '');
-    return `
-      <div class="cell">
-        <div class="date">${day}</div>
-        <div class="title">${titleHTML}</div>
-        ${e.ref ? `<div class="ref">${e.ref}</div>` : ''}
-      </div>
-    `;
-  }).join('');
-
-  // 전체 그리드
-  const grid = `
-    <div class="cal-grid">
-      ${weekdays}
-      ${blanks}${cells}
-    </div>
-  `;
-
-  return `<div class="calendar">${header}${grid}</div>`;
-}
-
-function attachNavHandlers(year, month){
-  qsa('.cal-header .nav').forEach(btn=>{
-    btn.addEventListener('click', ()=>{
-      const dir = Number(btn.dataset.dir||0);
-      let y = year, m = month + dir;
-      if(m < 1){ m = 12; y--; }
-      if(m > 12){ m = 1;  y++; }
-      // 쿼리 파라미터로 현재 달 반영
-      const url = new URL(location.href);
-      url.searchParams.set('y', String(y));
-      url.searchParams.set('m', String(m));
-      history.pushState({}, '', url.toString());
-      render(y, m);
-    });
-  });
-}
-
-/** ===== 메인 렌더 ===== **/
-async function render(year, month){
-  const root = qs('#calendar-root');
-  if(!root){ console.warn('calendar-root 요소가 없습니다.'); return; }
-  root.innerHTML = `<div class="calendar loading">불러오는 중…</div>`;
-  const entries = await loadMonthData(year, month);
-  root.innerHTML = buildCalendarGrid(year, month, entries);
-  attachNavHandlers(year, month);
-}
-
-/** ===== 시작: URL로 y/m 받기 (없으면 기본값) ===== **/
+const qs = (s,r=document)=>r.querySelector(s);
+const qsa = (s,r=document)=>[...r.querySelectorAll(s)];
 function getYMFromURL(){
   const u = new URL(location.href);
   let y = Number(u.searchParams.get('y')) || DEFAULT_YEAR;
   let m = Number(u.searchParams.get('m')) || DEFAULT_MONTH;
-
-  // 해시(#2025-10)도 지원
-  const hash = (location.hash||'').replace('#','').trim();
-  if(/^\d{4}-\d{2}$/.test(hash)){
-    const [hy, hm] = hash.split('-').map(Number);
-    if(hy && hm>=1 && hm<=12){ y = hy; m = hm; }
+  // 해시 #YYYY-MM 도 허용
+  const h = (location.hash||'').replace('#','').trim();
+  if(/^\d{4}-\d{2}$/.test(h)){
+    const [hy, hm] = h.split('-').map(Number);
+    if(hy && hm>=1 && hm<=12){ y=hy; m=hm; }
   }
   return { y, m };
 }
 
-// 최초 실행
+/* ===== 데이터 로딩 (월별 → 연간 폴백) ===== */
+async function tryFetch(path){
+  try{
+    const r = await fetch(`${path}?v=${Date.now()}`); // 캐시버스터
+    if(!r.ok) return null;
+    return await r.text();
+  }catch(e){ return null; }
+}
+// 월별 포맷: "DD|제목|본문(선택)|URL(선택)"
+function parseMonthly(text){
+  return text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l && !l.startsWith('#')).map(l=>{
+    const [d, title='', ref='', url=''] = l.split('|').map(s=>(s||'').trim());
+    return { day: Number(d)||0, title, ref, url };
+  }).filter(e=>e.day>=1 && e.day<=31);
+}
+// 연간 포맷: "MM-DD|제목|본문(선택)|URL(선택)" → 해당 월만
+function parseYearly(text, month){
+  const mm = pad2(month);
+  return text.split(/\r?\n/).map(l=>l.trim())
+    .filter(l=>l && !l.startsWith('#') && l.startsWith(mm+'-'))
+    .map(l=>{
+      const [md, title='', ref='', url=''] = l.split('|').map(s=>(s||'').trim());
+      const day = Number((md.split('-')[1]||'0'));
+      return { day, title, ref, url };
+    }).filter(e=>e.day>=1 && e.day<=31);
+}
+async function loadMonthData(year, month){
+  const ym = `${year}-${pad2(month)}`;
+  const monthly = await tryFetch(`${DATA_DIR}/${ym}.txt`);
+  if(monthly!=null) return parseMonthly(monthly);
+  const yearly = await tryFetch(`${DATA_DIR}/${year}.txt`);
+  if(yearly!=null) return parseYearly(yearly, month);
+  return [];
+}
+
+/* ===== 렌더링 ===== */
+function setYearLabel(year){
+  const y = qs('#year-label');
+  if(y) y.textContent = `${year}년`;
+}
+function buildMonthBar(year, month){
+  const mb = qs('#monthbar');
+  if(!mb) return;
+  mb.innerHTML = '';
+  for(let m=1;m<=12;m++){
+    const a = document.createElement('a');
+    a.href = '#';
+    a.textContent = `${m}월`;
+    if(m===month) a.classList.add('active');
+    a.addEventListener('click', (ev)=>{
+      ev.preventDefault();
+      const url = new URL(location.href);
+      url.searchParams.set('y', String(year));
+      url.searchParams.set('m', String(m));
+      history.pushState({},'',url);
+      render(year,m);
+    });
+    mb.appendChild(a);
+  }
+}
+function monthMeta(year, month){
+  const first = new Date(year, month-1, 1);
+  const last  = new Date(year, month, 0);
+  return {
+    startWeekday: first.getDay(),      // 0=일
+    totalDays:    last.getDate()
+  };
+}
+function makeDayCellHTML(dayNum, entry){
+  const titleHTML = entry?.title
+    ? (entry.url ? `<a href="${entry.url}" target="_blank" rel="noopener">${entry.title}</a>` : entry.title)
+    : (entry?.url ? `<a href="${entry.url}" target="_blank" rel="noopener">열기</a>` : '');
+  const refHTML = entry?.ref ? `<div class="ref">${entry.ref}</div>` : '';
+  const linkClass = entry?.url ? 'box link' : 'box';
+
+  // td 안 구조: 일자, 박스(제목/본문)
+  return `
+    <td>
+      <span class="daynum">${dayNum}</span>
+      <div class="${linkClass}" ${entry?.url ? `onclick="window.open('${entry.url}','_blank','noopener')"`:''}>
+        <div class="title" style="padding:8px 10px 4px; font-size:13px;">${titleHTML||''}</div>
+        <div style="padding:0 10px 10px; font-size:12px; color:var(--muted)">${refHTML}</div>
+      </div>
+    </td>
+  `;
+}
+function buildTableBody(year, month, entries){
+  const { startWeekday, totalDays } = monthMeta(year, month);
+  const byDay = new Map(entries.map(e=>[e.day, e]));
+
+  // 6주(최대 42칸)로 고정 테이블 구성
+  const totalCells = 42;
+  let html = '';
+  let dayCounter = 1;
+  for(let row=0; row<6; row++){
+    html += '<tr>';
+    for(let col=0; col<7; col++){
+      const cellIndex = row*7 + col;
+      if(cellIndex < startWeekday || dayCounter > totalDays){
+        html += '<td></td>';
+      }else{
+        const entry = byDay.get(dayCounter);
+        html += makeDayCellHTML(dayCounter, entry);
+        dayCounter++;
+      }
+    }
+    html += '</tr>';
+  }
+  return html;
+}
+
+/* ===== 메인 렌더 ===== */
+async function render(year, month){
+  setYearLabel(year);
+  buildMonthBar(year, month);
+
+  // 로딩 표시
+  const tbody = qs('#tbody');
+  if(tbody) tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--muted)">불러오는 중…</td></tr>`;
+
+  // 데이터 로딩
+  const entries = await loadMonthData(year, month);
+
+  // 본문 채우기
+  if(tbody) tbody.innerHTML = buildTableBody(year, month, entries);
+}
+
+/* ===== 시작 & 뒤/앞 이동 ===== */
 window.addEventListener('DOMContentLoaded', ()=>{
   const { y, m } = getYMFromURL();
   render(y, m);
 });
-
-// 뒤로가기/앞으로가기 대응
 window.addEventListener('popstate', ()=>{
   const { y, m } = getYMFromURL();
   render(y, m);
