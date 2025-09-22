@@ -50,6 +50,23 @@
     .monthbar a { font-size:13px; }
     .cal thead th { padding:8px; font-size:12px; }
   }
+
+.calendar{max-width:980px;margin:24px auto;padding:8px;}
+.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.cal-header .ym{font-weight:700;font-size:1.1rem;}
+.cal-header .nav{padding:6px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
+.dow{font-weight:700;text-align:center;opacity:.8}
+.cell{border:1px solid #e5e5e5;border-radius:10px;padding:8px;min-height:84px;display:flex;flex-direction:column}
+.cell.blank{background:#fafafa}
+.date{font-size:.9rem;font-weight:700;margin-bottom:4px;opacity:.8}
+.title{line-height:1.2}
+.title a{text-decoration:none;border-bottom:1px dashed currentColor}
+.ref{margin-top:4px;font-size:.85rem;opacity:.85}
+@media (max-width:640px){
+  .calendar{padding:4px}
+  .cell{min-height:72px}
+}
 </style>
 </head>
 <body>
