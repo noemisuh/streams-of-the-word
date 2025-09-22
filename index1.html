@@ -1,1 +1,239 @@
 
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>말씀따라 흐르는 샘물</title>
+<meta name="color-scheme" content="light dark">
+<style>
+  :root {
+    --fg:#111827; --muted:#6b7280; --line:#d1d5db; --line-strong:#9ca3af;
+    --accent:#0ea5e9; --bg:#ffffff; --bgsoft:#f8fafc; --box:#ffffff; --box-line:#d1d5db; --box-tint:#f0f9ff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root { --fg:#e5e7eb; --muted:#9ca3af; --line:#2b2f36; --line-strong:#4b5563; --bg:#0b0f14; --bgsoft:#0f141a; --box:#0c1218; --box-line:#1f2937; --box-tint:#0c141c; }
+    body { background: var(--bg); }
+  }
+  * { box-sizing:border-box; }
+  body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif; color:var(--fg); background:var(--bg); }
+  .wrap { max-width: 940px; margin: 28px auto; padding: 0 12px; }
+
+  header { display:flex; justify-content:center; align-items:center; margin:6px 0 4px; }
+  .brand { display:inline-flex; align-items:center; justify-content:center; padding:6px 14px; border:1.5px solid var(--line-strong); border-radius:999px; background:var(--bgsoft); }
+  .brand h1 { font-size:16px; margin:0; letter-spacing:-0.2px; font-weight:700; }
+
+  .yearbar { display:flex; justify-content:center; margin:6px 0; }
+  .yearbar .year { font-size:16px; font-weight:700; letter-spacing:-0.3px; }
+  .monthbar { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:4px 0 10px; }
+  .monthbar a { text-decoration:none; color:var(--muted); padding:2px 0; font-size:14px; }
+  .monthbar a.active { color:var(--accent); font-weight:700; }
+
+  table.cal { width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; }
+  .cal thead th { background:var(--bgsoft); position:sticky; top:0; z-index:1; font-weight:700; padding:8px; font-size:13px; border-bottom:2px solid var(--line-strong); border-top:1.5px solid var(--line-strong); border-left:1.5px solid var(--line-strong); }
+  .cal thead th:last-child { border-right:1.5px solid var(--line-strong); }
+  .cal tbody td { padding:6px; position:relative; background:var(--bg); border-left:1.5px solid var(--line); border-bottom:1.5px solid var(--line); }
+  .cal tbody tr:last-child td { border-bottom:1.5px solid var(--line-strong); }
+  .cal tbody td:last-child { border-right:1.5px solid var(--line-strong); }
+  .cal tbody td:first-child { border-left:1.5px solid var(--line-strong); }
+
+  .daynum { display:inline-block; font-size:11px; color:var(--muted); user-select:none; }
+  .box { width:100%; aspect-ratio:1/1; margin-top:4px; border:1.5px solid var(--box-line); background:linear-gradient(180deg, var(--box-tint) 0%, var(--box) 80%); border-radius:12px; position:relative; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,.02), 0 6px 12px rgba(0,0,0,.04); transition:border-color .15s, box-shadow .15s, transform .06s; }
+  .box.link { cursor:pointer; }
+  .box.link:hover { border-color:var(--accent); box-shadow:0 1px 0 rgba(0,0,0,.03), 0 10px 18px rgba(0,0,0,.08); }
+  .box.link:active { transform: translateY(1px); }
+
+  @media (max-width:640px){
+    .wrap { margin: 20px auto; }
+    .brand h1 { font-size:15px; }
+    .yearbar .year { font-size:15px; }
+    .monthbar a { font-size:13px; }
+    .cal thead th { padding:8px; font-size:12px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="brand"><h1>말씀따라 흐르는 샘물</h1></div></header>
+
+  <div class="yearbar" aria-label="연도"><div class="year" id="year-label"></div></div>
+  <div class="monthbar" id="monthbar" aria-label="월 선택"></div>
+
+  <table class="cal" aria-label="월력" id="cal">
+    <thead>
+      <tr><th scope="col">일</th><th scope="col">월</th><th scope="col">화</th><th scope="col">수</th><th scope="col">목</th><th scope="col">금</th><th scope="col">토</th></tr>
+    </thead>
+    <tbody id="tbody"></tbody>
+  </table>
+</div>
+
+<script>
+/** ===== 설정 ===== **/
+const DEFAULT_YEAR  = 2025;   // 최초 표시할 연도
+const DEFAULT_MONTH = 9;      // 1~12 (최초 표시할 달: 9=9월)
+const DATA_DIR      = 'data'; // 데이터 폴더 경로
+
+/** ===== 유틸 ===== **/
+const pad2 = n => String(n).padStart(2,'0');
+const qs = (s, r=document) => r.querySelector(s);
+const qsa = (s, r=document) => [...r.querySelectorAll(s)];
+
+/** ===== 데이터 로딩 (월별 → 연간 폴백) ===== **/
+async function tryFetch(path){
+  try{
+    const r = await fetch(`${path}?v=${Date.now()}`); // 캐시 버스터
+    if(!r.ok) return null;
+    return await r.text();
+  }catch(e){ return null; }
+}
+
+// 월별 포맷: "DD|제목|본문(선택)|URL(선택)"
+function parseMonthly(text){
+  return text
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l && !l.startsWith('#'))
+    .map(l => {
+      const [d, title='', ref='', url=''] = l.split('|').map(s => (s||'').trim());
+      return { day: +d, title, ref, url };
+    });
+}
+
+// 연간 포맷: "MM-DD|제목|본문(선택)|URL(선택)" → 해당 month만 반환
+function parseYearly(text, month){
+  const mm = pad2(month);
+  return text
+    .split(/\r?\n/)
+    .map(l => l.trim())
+    .filter(l => l && !l.startsWith('#') && l.startsWith(mm+'-'))
+    .map(l => {
+      const [md, title='', ref='', url=''] = l.split('|').map(s => (s||'').trim());
+      const day = +(md.split('-')[1]||'0');
+      return { day, title, ref, url };
+    });
+}
+
+async function loadMonthData(year, month){
+  const ymStr       = `${year}-${pad2(month)}`;
+  const monthlyPath = `${DATA_DIR}/${ymStr}.txt`;
+  const yearlyPath  = `${DATA_DIR}/${year}.txt`;
+
+  // 1) 월별 파일 시도
+  let text = await tryFetch(monthlyPath);
+  if(text != null) return parseMonthly(text);
+
+  // 2) 연간 파일에서 해당 월만 필터
+  text = await tryFetch(yearlyPath);
+  if(text != null) return parseYearly(text, month);
+
+  return [];
+}
+
+/** ===== 렌더링 ===== **/
+function buildCalendarGrid(year, month, entries){
+  // entries: [{day, title, ref, url}]
+  const byDay = new Map(entries.map(e => [e.day, e]));
+  const first = new Date(year, month-1, 1);
+  const last  = new Date(year, month, 0);
+  const startWeekday = first.getDay(); // 0=일
+  const totalDays    = last.getDate();
+
+  // 헤더(월 전환 버튼)
+  const header = `
+    <div class="cal-header">
+      <button class="nav prev" data-dir="-1" aria-label="이전 달">◀</button>
+      <div class="ym">${year}년 ${month}월</div>
+      <button class="nav next" data-dir="1" aria-label="다음 달">▶</button>
+    </div>
+  `;
+
+  // 요일
+  const weekdays = ['일','월','화','수','목','금','토']
+    .map(d=>`<div class="dow">${d}</div>`).join('');
+
+  // 빈칸(전월)
+  const blanks = Array(startWeekday).fill('<div class="cell blank"></div>').join('');
+
+  // 날짜 칸
+  const cells = Array.from({length: totalDays}, (_,i)=>{
+    const day = i+1;
+    const e = byDay.get(day) || { title:'', ref:'', url:'' };
+    const titleHTML = e.title
+      ? (e.url ? `<a href="${e.url}" target="_blank" rel="noopener">${e.title}</a>` : e.title)
+      : (e.url ? `<a href="${e.url}" target="_blank" rel="noopener">열기</a>` : '');
+    return `
+      <div class="cell">
+        <div class="date">${day}</div>
+        <div class="title">${titleHTML}</div>
+        ${e.ref ? `<div class="ref">${e.ref}</div>` : ''}
+      </div>
+    `;
+  }).join('');
+
+  // 전체 그리드
+  const grid = `
+    <div class="cal-grid">
+      ${weekdays}
+      ${blanks}${cells}
+    </div>
+  `;
+
+  return `<div class="calendar">${header}${grid}</div>`;
+}
+
+function attachNavHandlers(year, month){
+  qsa('.cal-header .nav').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      const dir = Number(btn.dataset.dir||0);
+      let y = year, m = month + dir;
+      if(m < 1){ m = 12; y--; }
+      if(m > 12){ m = 1;  y++; }
+      // 쿼리 파라미터로 현재 달 반영
+      const url = new URL(location.href);
+      url.searchParams.set('y', String(y));
+      url.searchParams.set('m', String(m));
+      history.pushState({}, '', url.toString());
+      render(y, m);
+    });
+  });
+}
+
+/** ===== 메인 렌더 ===== **/
+async function render(year, month){
+  const root = qs('#calendar-root');
+  if(!root){ console.warn('calendar-root 요소가 없습니다.'); return; }
+  root.innerHTML = `<div class="calendar loading">불러오는 중…</div>`;
+  const entries = await loadMonthData(year, month);
+  root.innerHTML = buildCalendarGrid(year, month, entries);
+  attachNavHandlers(year, month);
+}
+
+/** ===== 시작: URL로 y/m 받기 (없으면 기본값) ===== **/
+function getYMFromURL(){
+  const u = new URL(location.href);
+  let y = Number(u.searchParams.get('y')) || DEFAULT_YEAR;
+  let m = Number(u.searchParams.get('m')) || DEFAULT_MONTH;
+
+  // 해시(#2025-10)도 지원
+  const hash = (location.hash||'').replace('#','').trim();
+  if(/^\d{4}-\d{2}$/.test(hash)){
+    const [hy, hm] = hash.split('-').map(Number);
+    if(hy && hm>=1 && hm<=12){ y = hy; m = hm; }
+  }
+  return { y, m };
+}
+
+// 최초 실행
+window.addEventListener('DOMContentLoaded', ()=>{
+  const { y, m } = getYMFromURL();
+  render(y, m);
+});
+
+// 뒤로가기/앞으로가기 대응
+window.addEventListener('popstate', ()=>{
+  const { y, m } = getYMFromURL();
+  render(y, m);
+});
+</script>
+</body>
+</html>
