@@ -29,266 +29,199 @@
   .monthbar a.active { color:var(--accent); font-weight:700; }
 
   table.cal { width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; }
-  .cal thead th { background:var(--bgsoft); position:sticky; top:0; z-index:1; font-weight:700; padding:8px; font-size:13px; border-bottom:2px solid var(--line-strong); border-top:1.5px solid var(--line-strong); border-left:1.5px solid var(--line-strong); }
+  .cal thead th { background:var(--bgsoft); position:sticky; top:0; z-index:1; font-weight:700; padding:8px; font-size:13px; border-bottom:2px solid var(--line-strong); border-top:1.5px solid var(--line-strong); border-left:1.5px solid var(--line-strong); text-align:center; }
   .cal thead th:last-child { border-right:1.5px solid var(--line-strong); }
   .cal tbody td { padding:6px; position:relative; background:var(--bg); border-left:1.5px solid var(--line); border-bottom:1.5px solid var(--line); }
   .cal tbody tr:last-child td { border-bottom:1.5px solid var(--line-strong); }
   .cal tbody td:last-child { border-right:1.5px solid var(--line-strong); }
   .cal tbody td:first-child { border-left:1.5px solid var(--line-strong); }
 
-  .daynum { display:inline-block; font-size:11px; color:var(--muted); user-select:none; }
-  .box { width:100%; aspect-ratio:1/1; margin-top:4px; border:1.5px solid var(--box-line); background:linear-gradient(180deg, var(--box-tint) 0%, var(--box) 80%); border-radius:12px; position:relative; overflow:hidden; box-shadow:0 1px 0 rgba(0,0,0,.02), 0 6px 12px rgba(0,0,0,.04); transition:border-color .15s, box-shadow .15s, transform .06s; }
+  .daynum { display:block; font-size:11px; color:var(--muted); user-select:none; text-align:center; margin-top:2px; }
+
+  .box { 
+    width:100%; aspect-ratio:1/1; margin-top:4px; border:1.5px solid var(--box-line);
+    background:linear-gradient(180deg, var(--box-tint) 0%, var(--box) 80%);
+    border-radius:12px; position:relative; overflow:hidden;
+    box-shadow:0 1px 0 rgba(0,0,0,.02), 0 6px 12px rgba(0,0,0,.04);
+    transition:border-color .15s, box-shadow .15s, transform .06s;
+    display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:8px 10px;
+  }
   .box.link { cursor:pointer; }
   .box.link:hover { border-color:var(--accent); box-shadow:0 1px 0 rgba(0,0,0,.03), 0 10px 18px rgba(0,0,0,.08); }
   .box.link:active { transform: translateY(1px); }
 
+  .title { text-align:center; white-space:normal; word-break:keep-all; overflow-wrap:anywhere; line-height:1.45; margin-bottom:4px; }
+  .ref { text-align:center; font-size:13px; }
+
+  .box .title { font-size:14.5px; }
   @media (max-width:640px){
     .wrap { margin: 20px auto; }
     .brand h1 { font-size:15px; }
     .yearbar .year { font-size:15px; }
     .monthbar a { font-size:13px; }
     .cal thead th { padding:8px; font-size:12px; }
+    .title { line-height:1.45; }
   }
-
-.calendar{max-width:980px;margin:24px auto;padding:8px;}
-.cal-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
-.cal-header .ym{font-weight:700;font-size:1.1rem;}
-.cal-header .nav{padding:6px 10px;border:1px solid #ddd;border-radius:8px;background:#fff;cursor:pointer}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;}
-.dow{font-weight:700;text-align:center;opacity:.8}
-.cell{border:1px solid #e5e5e5;border-radius:10px;padding:8px;min-height:84px;display:flex;flex-direction:column}
-.cell.blank{background:#fafafa}
-.date{font-size:.9rem;font-weight:700;margin-bottom:4px;opacity:.8}
-.title{line-height:1.2}
-.title a{text-decoration:none;border-bottom:1px dashed currentColor}
-.ref{margin-top:4px;font-size:.85rem;opacity:.85}
-@media (max-width:640px){
-  .calendar{padding:4px}
-  .cell{min-height:72px}
-}
-/* 제목/본문 줄바꿈 + 가운데 정렬 */
-.title {
-  text-align: center;
-  white-space: normal;        /* 한 줄 고정 해제 */
-  word-break: keep-all;       /* 단어 중간 단절 최소화(한글 가독성↑) */
-  overflow-wrap: anywhere;    /* 너무 긴 단어는 강제 줄바꿈 */
-  line-height: 1.4;
-  margin-bottom: 4px;
-}
-.ref { text-align: center; }
-
-/* 박스 안 내용 수평/수직 가운데 배치 */
-.box {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;    /* 세로 가운데 */
-  align-items: center;        /* 가로 가운데 */
-  text-align: center;
-  padding: 8px 10px;          /* 안쪽 여백 살짝 */
-}
-
-/* 날짜 숫자도 가운데로 (원하면) */
-.daynum {
-  display: block;
-  text-align: center;         /* 좌측 대신 가운데 */
-  margin-top: 2px;
-}
-
-/* 요일 헤더 가운데(이미 그렇지만 확실히) */
-.cal thead th { text-align: center; }
-
-/* 모바일에서 제목이 너무 붙어 보이지 않게 */
-@media (max-width:640px){
-  .title { line-height: 1.45; }
-}
-
-  /* 제목/본문 글자 한 단계 키우기 */
-.box .title { font-size: 14.5px !important; line-height: 1.45; }
-.box .ref   { font-size: 13px; }
-
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header><div class="brand"><h1>말씀따라 흐르는 샘물</h1></div></header>
+  <div class="wrap">
+    <header><div class="brand"><h1>말씀따라 흐르는 샘물</h1></div></header>
 
-  <div class="yearbar" aria-label="연도"><div class="year" id="year-label"></div></div>
-  <div class="monthbar" id="monthbar" aria-label="월 선택"></div>
+    <div class="yearbar" aria-label="연도"><div class="year" id="year-label"></div></div>
+    <div class="monthbar" id="monthbar" aria-label="월 선택"></div>
 
-  <table class="cal" aria-label="월력" id="cal">
-    <thead>
-      <tr><th scope="col">일</th><th scope="col">월</th><th scope="col">화</th><th scope="col">수</th><th scope="col">목</th><th scope="col">금</th><th scope="col">토</th></tr>
-    </thead>
-    <tbody id="tbody"></tbody>
-  </table>
-</div>
+    <table class="cal" aria-label="월력" id="cal">
+      <thead>
+        <tr><th scope="col">일</th><th scope="col">월</th><th scope="col">화</th><th scope="col">수</th><th scope="col">목</th><th scope="col">금</th><th scope="col">토</th></tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
 
-<!-- 👇 여기 새 스크립트 블록 전체 붙여넣기 -->
-<script>
-/* (앞서 보낸 스크립트 전체를 여기 넣기) */
-</script>
-</body>
-</html>
-  
-<script>
-/* ===== 설정 ===== */
-const DATA_DIR = 'data';     // 데이터 폴더
-const DEFAULT_YEAR = 2025;   // 초기 표시 연도
-const DEFAULT_MONTH = 9;      // 초기 표시 월 (1~12)
+  <script>
+  /* ===== 설정 ===== */
+  const DATA_DIR = 'data';     // 데이터 폴더
+  const DEFAULT_YEAR = 2025;   // 초기 표시 연도
+  const DEFAULT_MONTH = 9;     // 초기 표시 월 (1~12)
 
-/* ===== 유틸 ===== */
-const pad2 = n => String(n).padStart(2,'0');
-const qs = (s,r=document)=>r.querySelector(s);
-const qsa = (s,r=document)=>[...r.querySelectorAll(s)];
-function getYMFromURL(){
-  const u = new URL(location.href);
-  let y = Number(u.searchParams.get('y')) || DEFAULT_YEAR;
-  let m = Number(u.searchParams.get('m')) || DEFAULT_MONTH;
-  // 해시 #YYYY-MM 도 허용
-  const h = (location.hash||'').replace('#','').trim();
-  if(/^\d{4}-\d{2}$/.test(h)){
-    const [hy, hm] = h.split('-').map(Number);
-    if(hy && hm>=1 && hm<=12){ y=hy; m=hm; }
-  }
-  return { y, m };
-}
+  /* ===== 유틸 ===== */
+  const pad2 = n => String(n).padStart(2,'0');
+  const qs = (s,r=document)=>r.querySelector(s);
 
-/* ===== 데이터 로딩 (월별 → 연간 폴백) ===== */
-async function tryFetch(path){
-  try{
-    const r = await fetch(`${path}?v=${Date.now()}`); // 캐시버스터
-    if(!r.ok) return null;
-    return await r.text();
-  }catch(e){ return null; }
-}
-// 월별 포맷: "DD|제목|본문(선택)|URL(선택)"
-function parseMonthly(text){
-  return text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l && !l.startsWith('#')).map(l=>{
-    const [d, title='', ref='', url=''] = l.split('|').map(s=>(s||'').trim());
-    return { day: Number(d)||0, title, ref, url };
-  }).filter(e=>e.day>=1 && e.day<=31);
-}
-// 연간 포맷: "MM-DD|제목|본문(선택)|URL(선택)" → 해당 월만
-function parseYearly(text, month){
-  const mm = pad2(month);
-  return text.split(/\r?\n/).map(l=>l.trim())
-    .filter(l=>l && !l.startsWith('#') && l.startsWith(mm+'-'))
-    .map(l=>{
-      const [md, title='', ref='', url=''] = l.split('|').map(s=>(s||'').trim());
-      const day = Number((md.split('-')[1]||'0'));
-      return { day, title, ref, url };
-    }).filter(e=>e.day>=1 && e.day<=31);
-}
-async function loadMonthData(year, month){
-  const ym = `${year}-${pad2(month)}`;
-  const monthly = await tryFetch(`${DATA_DIR}/${ym}.txt`);
-  if(monthly!=null) return parseMonthly(monthly);
-  const yearly = await tryFetch(`${DATA_DIR}/${year}.txt`);
-  if(yearly!=null) return parseYearly(yearly, month);
-  return [];
-}
-
-/* ===== 렌더링 ===== */
-function setYearLabel(year){
-  const y = qs('#year-label');
-  if(y) y.textContent = `${year}년`;
-}
-function buildMonthBar(year, month){
-  const mb = qs('#monthbar');
-  if(!mb) return;
-  mb.innerHTML = '';
-  for(let m=1;m<=12;m++){
-    const a = document.createElement('a');
-    a.href = '#';
-    a.textContent = `${m}월`;
-    if(m===month) a.classList.add('active');
-    a.addEventListener('click', (ev)=>{
-      ev.preventDefault();
-      const url = new URL(location.href);
-      url.searchParams.set('y', String(year));
-      url.searchParams.set('m', String(m));
-      history.pushState({},'',url);
-      render(year,m);
-    });
-    mb.appendChild(a);
-  }
-}
-function monthMeta(year, month){
-  const first = new Date(year, month-1, 1);
-  const last  = new Date(year, month, 0);
-  return {
-    startWeekday: first.getDay(),      // 0=일
-    totalDays:    last.getDate()
-  };
-}
-function makeDayCellHTML(dayNum, entry){
-  const titleHTML = entry?.title
-    ? (entry.url ? `<a href="${entry.url}" target="_blank" rel="noopener">${entry.title}</a>` : entry.title)
-    : (entry?.url ? `<a href="${entry.url}" target="_blank" rel="noopener">열기</a>` : '');
-  const refHTML = entry?.ref ? `<div class="ref">${entry.ref}</div>` : '';
-  const linkClass = entry?.url ? 'box link' : 'box';
-
-  // td 안 구조: 일자, 박스(제목/본문)
-  return `
-    <td>
-      <span class="daynum">${dayNum}</span>
-      <div class="${linkClass}" ${entry?.url ? `onclick="window.open('${entry.url}','_blank','noopener')"`:''}>
-        <div class="title" style="padding:8px 10px 4px; font-size:13px;">${titleHTML||''}</div>
-        <div style="padding:0 10px 10px; font-size:12px; color:var(--muted)">${refHTML}</div>
-      </div>
-    </td>
-  `;
-}
-function buildTableBody(year, month, entries){
-  const { startWeekday, totalDays } = monthMeta(year, month);
-  const byDay = new Map(entries.map(e=>[e.day, e]));
-
-  // 6주(최대 42칸)로 고정 테이블 구성
-  const totalCells = 42;
-  let html = '';
-  let dayCounter = 1;
-  for(let row=0; row<6; row++){
-    html += '<tr>';
-    for(let col=0; col<7; col++){
-      const cellIndex = row*7 + col;
-      if(cellIndex < startWeekday || dayCounter > totalDays){
-        html += '<td></td>';
-      }else{
-        const entry = byDay.get(dayCounter);
-        html += makeDayCellHTML(dayCounter, entry);
-        dayCounter++;
-      }
+  function getYMFromURL(){
+    const u = new URL(location.href);
+    let y = Number(u.searchParams.get('y')) || DEFAULT_YEAR;
+    let m = Number(u.searchParams.get('m')) || DEFAULT_MONTH;
+    // 해시 #YYYY-MM 도 허용
+    const h = (location.hash||'').replace('#','').trim();
+    if(/^\d{4}-\d{2}$/.test(h)){
+      const [hy, hm] = h.split('-').map(Number);
+      if(hy && hm>=1 && hm<=12){ y=hy; m=hm; }
     }
-    html += '</tr>';
+    return { y, m };
   }
-  return html;
-}
 
-/* ===== 메인 렌더 ===== */
-async function render(year, month){
-  setYearLabel(year);
-  buildMonthBar(year, month);
+  /* ===== 데이터 로딩 (월별 → 연간 폴백) ===== */
+  async function tryFetch(path){
+    try{
+      const r = await fetch(`${path}?v=${Date.now()}`); // 캐시버스터
+      if(!r.ok) return null;
+      return await r.text();
+    }catch(e){ return null; }
+  }
+  // 월별 포맷: "DD|제목|본문(선택)|URL(선택)"
+  function parseMonthly(text){
+    return text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l && !l.startsWith('#')).map(l=>{
+      const [d, title='', ref='', url=''] = l.split('|').map(s=>(s||'').trim());
+      return { day: Number(d)||0, title, ref, url };
+    }).filter(e=>e.day>=1 && e.day<=31);
+  }
+  // 연간 포맷: "MM-DD|제목|본문(선택)|URL(선택)" → 해당 월만
+  function parseYearly(text, month){
+    const mm = pad2(month);
+    return text.split(/\r?\n/).map(l=>l.trim())
+      .filter(l=>l && !l.startsWith('#') && l.startsWith(mm+'-'))
+      .map(l=>{
+        const [md, title='', ref='', url=''] = l.split('|').map(s=>(s||'').trim());
+        const day = Number((md.split('-')[1]||'0'));
+        return { day, title, ref, url };
+      }).filter(e=>e.day>=1 && e.day<=31);
+  }
+  async function loadMonthData(year, month){
+    const ym = `${year}-${pad2(month)}`;
+    const monthly = await tryFetch(`${DATA_DIR}/${ym}.txt`);
+    if(monthly!=null) return parseMonthly(monthly);
+    const yearly = await tryFetch(`${DATA_DIR}/${year}.txt`);
+    if(yearly!=null) return parseYearly(yearly, month);
+    return [];
+  }
 
-  // 로딩 표시
-  const tbody = qs('#tbody');
-  if(tbody) tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--muted)">불러오는 중…</td></tr>`;
+  /* ===== 렌더링 ===== */
+  function setYearLabel(year){
+    const y = qs('#year-label');
+    if(y) y.textContent = `${year}년`;
+  }
+  function buildMonthBar(year, month){
+    const mb = qs('#monthbar');
+    if(!mb) return;
+    mb.innerHTML = '';
+    for(let m=1;m<=12;m++){
+      const a = document.createElement('a');
+      a.href = '#';
+      a.textContent = `${m}월`;
+      if(m===month) a.classList.add('active');
+      a.addEventListener('click', (ev)=>{
+        ev.preventDefault();
+        const url = new URL(location.href);
+        url.searchParams.set('y', String(year));
+        url.searchParams.set('m', String(m));
+        history.pushState({},'',url);
+        render(year,m);
+      });
+      mb.appendChild(a);
+    }
+  }
+  function monthMeta(year, month){
+    const first = new Date(year, month-1, 1);
+    const last  = new Date(year, month, 0);
+    return { startWeekday: first.getDay(), totalDays: last.getDate() };
+  }
+  function makeDayCellHTML(dayNum, entry){
+    const titleHTML = entry?.title
+      ? (entry.url ? `<a href="${entry.url}" target="_blank" rel="noopener">${entry.title}</a>` : entry.title)
+      : (entry?.url ? `<a href="${entry.url}" target="_blank" rel="noopener">열기</a>` : '');
+    const refHTML = entry?.ref ? `<div class="ref">${entry.ref}</div>` : '';
+    const linkClass = entry?.url ? 'box link' : 'box';
+    return `
+      <td>
+        <span class="daynum">${dayNum}</span>
+        <div class="${linkClass}" ${entry?.url ? `onclick="window.open('${entry.url}','_blank','noopener')"`:''}>
+          <div class="title" style="padding:8px 10px 4px; font-size:13px;">${titleHTML||''}</div>
+          <div style="padding:0 10px 10px; font-size:12px; color:var(--muted)">${refHTML}</div>
+        </div>
+      </td>
+    `;
+  }
+  function buildTableBody(year, month, entries){
+    const { startWeekday, totalDays } = monthMeta(year, month);
+    const byDay = new Map(entries.map(e=>[e.day, e]));
+    let html = '', day = 1;
+    for(let row=0; row<6; row++){
+      html += '<tr>';
+      for(let col=0; col<7; col++){
+        const idx = row*7 + col;
+        if(idx < startWeekday || day > totalDays){
+          html += '<td></td>';
+        }else{
+          html += makeDayCellHTML(day, byDay.get(day));
+          day++;
+        }
+      }
+      html += '</tr>';
+    }
+    return html;
+  }
 
-  // 데이터 로딩
-  const entries = await loadMonthData(year, month);
+  /* ===== 메인 렌더 ===== */
+  async function render(year, month){
+    setYearLabel(year);
+    buildMonthBar(year, month);
+    const tbody = qs('#tbody');
+    if(tbody) tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--muted)">불러오는 중…</td></tr>`;
+    const entries = await loadMonthData(year, month);
+    if(tbody) tbody.innerHTML = buildTableBody(year, month, entries);
+  }
 
-  // 본문 채우기
-  if(tbody) tbody.innerHTML = buildTableBody(year, month, entries);
-}
-
-/* ===== 시작 & 뒤/앞 이동 ===== */
-window.addEventListener('DOMContentLoaded', ()=>{
-  const { y, m } = getYMFromURL();
-  render(y, m);
-});
-window.addEventListener('popstate', ()=>{
-  const { y, m } = getYMFromURL();
-  render(y, m);
-});
-</script>
+  /* ===== 시작 & 뒤/앞 이동 ===== */
+  window.addEventListener('DOMContentLoaded', ()=>{
+    const { y, m } = getYMFromURL();
+    render(y, m);
+  });
+  window.addEventListener('popstate', ()=>{
+    const { y, m } = getYMFromURL();
+    render(y, m);
+  });
+  </script>
 </body>
 </html>
