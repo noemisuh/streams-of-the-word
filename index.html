@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>말씀따라 흐르는 샘물</title>
 <meta name="color-scheme" content="light dark">
+
 <style>
   :root {
     --fg:#111827; --muted:#6b7280; --line:#d1d5db; --line-strong:#9ca3af;
@@ -18,56 +19,126 @@
   body { margin:0; font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR", "Apple SD Gothic Neo", sans-serif; color:var(--fg); background:var(--bg); }
   .wrap { max-width: 940px; margin: 28px auto; padding: 0 12px; }
 
-  header { display:flex; justify-content:center; align-items:center; margin:6px 0 4px; }
-  .brand { display:inline-flex; align-items:center; justify-content:center; padding:6px 14px; border:1.5px solid var(--line-strong); border-radius:999px; background:var(--bgsoft); }
-  .brand h1 { font-size:16px; margin:0; letter-spacing:-0.2px; font-weight:700; }
+header { display:flex; justify-content:center; align-items:center; margin:6px 0 4px; }
+/* 헤더 배지 + 링크 스타일 */
+.brand{
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  padding:6px 14px;
+  border:1.5px solid var(--line-strong);
+  border-radius:999px;
+  background:var(--bgsoft);
+  text-decoration:none;   /* 링크 밑줄 제거 */
+  color:inherit;          /* 링크 색상 상속 */
+}
+.brand h1{ font-size:16px; margin:0; letter-spacing:-0.2px; font-weight:700; }
 
-  .yearbar { display:flex; justify-content:center; margin:6px 0; }
-  .yearbar .year { font-size:16px; font-weight:700; letter-spacing:-0.3px; }
-  .monthbar { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:4px 0 10px; }
-  .monthbar a { text-decoration:none; color:var(--muted); padding:2px 0; font-size:14px; }
-  .monthbar a.active { color:var(--accent); font-weight:700; }
+/* 연도 바 (끊긴 줄 복구 + 중복 제거) */
+.yearbar{
+  display:flex;
+  justify-content:center;
+  margin:6px 0;
+}
+.yearbar .year { font-size:16px; font-weight:700; letter-spacing:-0.3px; }
 
-  table.cal { width:100%; border-collapse:separate; border-spacing:0; table-layout:fixed; }
-  .cal thead th { background:var(--bgsoft); position:sticky; top:0; z-index:1; font-weight:700; padding:8px; font-size:13px; border-bottom:2px solid var(--line-strong); border-top:1.5px solid var(--line-strong); border-left:1.5px solid var(--line-strong); text-align:center; }
-  .cal thead th:last-child { border-right:1.5px solid var(--line-strong); }
-  .cal tbody td { padding:6px; position:relative; background:var(--bg); border-left:1.5px solid var(--line); border-bottom:1.5px solid var(--line); }
-  .cal tbody tr:last-child td { border-bottom:1.5px solid var(--line-strong); }
-  .cal tbody td:last-child { border-right:1.5px solid var(--line-strong); }
-  .cal tbody td:first-child { border-left:1.5px solid var(--line-strong); }
+/* 월 바 */
+.monthbar { display:flex; gap:10px; flex-wrap:wrap; justify-content:center; margin:4px 0 10px; }
+.monthbar a { text-decoration:none; color:var(--muted); padding:2px 0; font-size:14px; }
+.monthbar a.active { color:var(--accent); font-weight:700; }
 
-  .daynum { display:block; font-size:11px; color:var(--muted); user-select:none; text-align:center; margin-top:2px; }
+table.cal { 
+  width:100%;
+  border-collapse:separate;
+  border-spacing:0;
+  table-layout:fixed;
+}
+.cal thead th {
+  background:var(--bgsoft);
+  position:sticky;
+  top:0;
+  z-index:1;
+  font-weight:700;
+  padding:8px;
+  font-size:13px;
+  border-bottom:2px solid var(--line-strong);
+  border-top:1.5px solid var(--line-strong);
+  border-left:1.5px solid var(--line-strong);
+  text-align:center;
+}
+.cal thead th:last-child { border-right:1.5px solid var(--line-strong); }
 
-  .box { 
-    width:100%; aspect-ratio:1/1; margin-top:4px; border:1.5px solid var(--box-line);
-    background:linear-gradient(180deg, var(--box-tint) 0%, var(--box) 80%);
-    border-radius:12px; position:relative; overflow:hidden;
-    box-shadow:0 1px 0 rgba(0,0,0,.02), 0 6px 12px rgba(0,0,0,.04);
-    transition:border-color .15s, box-shadow .15s, transform .06s;
-    display:flex; flex-direction:column; justify-content:center; align-items:center; text-align:center; padding:8px 10px;
-  }
-  .box.link { cursor:pointer; }
-  .box.link:hover { border-color:var(--accent); box-shadow:0 1px 0 rgba(0,0,0,.03), 0 10px 18px rgba(0,0,0,.08); }
-  .box.link:active { transform: translateY(1px); }
+.cal tbody td {
+  padding:6px;
+  position:relative;
+  background:var(--bg);
+  border-left:1.5px solid var(--line);
+  border-bottom:1.5px solid var(--line);
+}
+.cal tbody tr:last-child td { border-bottom:1.5px solid var(--line-strong); }
+.cal tbody td:last-child { border-right:1.5px solid var(--line-strong); }
+.cal tbody td:first-child { border-left:1.5px solid var(--line-strong); }
 
-  .title { text-align:center; white-space:normal; word-break:keep-all; overflow-wrap:anywhere; line-height:1.45; margin-bottom:4px; }
-  .ref { text-align:center; font-size:13px; }
+.daynum {
+  display:block;
+  font-size:11px;
+  color:var(--muted);
+  user-select:none;
+  text-align:center;
+  margin-top:2px;
+}
 
-  .box .title { font-size:14.5px; }
-  @media (max-width:640px){
-    .wrap { margin: 20px auto; }
-    .brand h1 { font-size:15px; }
-    .yearbar .year { font-size:15px; }
-    .monthbar a { font-size:13px; }
-    .cal thead th { padding:8px; font-size:12px; }
-    .title { line-height:1.45; }
-  }
+/* 캘린더 박스 */
+.box {
+  width:100%;
+  aspect-ratio:1/1;
+  margin-top:4px;
+  border:1.5px solid var(--box-line);
+  background:linear-gradient(180deg, var(--box-tint) 0%, var(--box) 80%);
+  border-radius:12px;
+  position:relative;
+  overflow:hidden;
+  box-shadow:0 1px 0 rgba(0,0,0,.02), 0 6px 12px rgba(0,0,0,.04);
+  transition:border-color .15s, box-shadow .15s, transform .06s;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  align-items:center;
+  text-align:center;
+  padding:8px 10px;
+}
+.box.link { cursor:pointer; }
+.box.link:hover { border-color:var(--accent); box-shadow:0 1px 0 rgba(0,0,0,.03), 0 10px 18px rgba(0,0,0,.08); }
+.box.link:active { transform: translateY(1px); }
+
+.title { 
+  text-align:center;
+  white-space:normal;
+  word-break:keep-all;
+  overflow-wrap:anywhere;
+  line-height:1.45;
+  margin-bottom:4px;
+}
+.ref { text-align:center; font-size:13px; }
+.box .title { font-size:14.5px; }
+
+@media (max-width:640px){
+  .wrap { margin:20px auto; }
+  .brand h1 { font-size:15px; }
+  .yearbar .year { font-size:15px; }
+  .monthbar a { font-size:13px; }
+  .cal thead th { padding:8px; font-size:12px; }
+  .title { line-height:1.45; }
+}
 </style>
 </head>
 <body>
   <div class="wrap">
-    <header><div class="brand"><h1>말씀따라 흐르는 샘물</h1></div></header>
-
+       <header>
+      <a class="brand" id="brand-link" href="index.html?y=2025&m=9" rel="noopener">
+        <h1>말씀따라 흐르는 샘물</h1>
+      </a>
+    </header>
     <div class="yearbar" aria-label="연도"><div class="year" id="year-label"></div></div>
     <div class="monthbar" id="monthbar" aria-label="월 선택"></div>
 
