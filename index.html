@@ -440,6 +440,9 @@ async function render(year, month){
     setupHymnPlayer(year, month);
     return;
   }
+   if(tbody) tbody.innerHTML = buildTableBody(year, month, entries);
+  setupHymnPlayer(year, month);
+}
 
   // ⬇️ 추가: 월별 찬양 플레이어 세팅
   setupHymnPlayer(year, month);
