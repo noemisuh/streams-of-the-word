@@ -177,7 +177,16 @@ const HYMN = {
   const DEFAULT_YEAR = 2025;   // 초기 표시 연도
   const DEFAULT_MONTH = 9;     // 초기 표시 월 (1~12)
 
-/* ===== 월별 찬양 플레이어 ===== */
+// 유튜브 URL/ID 어떤 입력이 와도 영상 ID만 추출
+function parseYouTubeId(input){
+  if(!input) return '';
+  if(/^https?:\/\//i.test(input)){
+    const m = input.match(/(?:v=|youtu\.be\/|embed\/)([A-Za-z0-9_-]{6,})/);
+    return m ? m[1] : '';
+  }
+  return input; // 이미 ID라면 그대로
+}
+
 function setupHymnPlayer(year, month){
   const ymKey = `${year}-${String(month).padStart(2,'0')}`;
   const info = HYMN[ymKey];
@@ -187,8 +196,8 @@ function setupHymnPlayer(year, month){
   const yt     = document.getElementById('yt');
 
   // 초기화
-  if (audio) { audio.pause(); audio.src=""; audio.style.display="none"; }
-  if (yt)    { yt.src=""; yt.style.display="none"; }
+  if (audio) { try{audio.pause()}catch{}; audio.src=""; audio.style.display="none"; }
+  if (yt){ yt.style.display="none"; yt.src = "about:blank"; } // 동일 src 캐시 회피
   if (playBtn) playBtn.disabled = !info;
 
   if (!info){
@@ -197,27 +206,26 @@ function setupHymnPlayer(year, month){
   }
   playBtn.textContent = `🔊 ${info.title} 재생`;
 
-  // 버튼 클릭 시 재생 (모바일 자동재생 제한 회피)
   playBtn.onclick = ()=>{
     if (info.type === "mp3"){
       audio.src = info.src;
       audio.style.display = "block";
-      audio.play().catch(()=>{}); // 브라우저 정책으로 실패할 수 있음
+      audio.play().catch(()=>{});
     } else if (info.type === "yt"){
-      // 유튜브 자동재생 + 반복
-      yt.src = `https://www.youtube.com/embed/${info.src}?autoplay=1&loop=1&playlist=${info.src}`;
-      yt.style.display = "block";
+      const vid = parseYouTubeId(info.src);
+      const url = `https://www.youtube.com/embed/${vid}?autoplay=1&loop=1&playlist=${vid}&mute=1`;
+      setTimeout(()=>{ yt.src = url; yt.style.display = "block"; }, 50);
     }
   };
 
-  // 쿼리 파라미터로 즉시 재생 트리거 (?autoplay=1)
+  // ?autoplay=1 이면 자동 재생
   const params = new URL(location.href).searchParams;
   if (params.get('autoplay') === '1'){
     setTimeout(()=> playBtn.click(), 150);
   }
 }
-    
-  /* ===== 유틸 ===== */
+
+/* ===== 유틸 ===== */
   const pad2 = n => String(n).padStart(2,'0');
   const qs = (s,r=document)=>r.querySelector(s);
 
@@ -242,32 +250,81 @@ function setupHymnPlayer(year, month){
       return await r.text();
     }catch(e){ return null; }
   }
-  // 월별 포맷: "DD|제목|본문(선택)|URL(선택)"
-  function parseMonthly(text){
-    return text.split(/\r?\n/).map(l=>l.trim()).filter(l=>l && !l.startsWith('#')).map(l=>{
-      const [d, title='', ref='', url=''] = l.split('|').map(s=>(s||'').trim());
-      return { day: Number(d)||0, title, ref, url };
-    }).filter(e=>e.day>=1 && e.day<=31);
+ 
+    // 월별 포맷: "DD|제목|본문(선택)|URL(선택)"
+function parseMonthly(text){
+  return text
+    .replace(/^\uFEFF/, '') // BOM 제거
+    .split(/\r?\n/)
+    .map(l=>l.trim())
+    .filter(l=>l && !l.startsWith('#'))
+    .map(l=>{
+      const parts = l.split('|').map(s=>(s||'').trim());
+      const day = Number(parts[0])||0;
+
+      let title = '', ref = '', url = '';
+      const rest = parts.slice(1);
+
+      if (rest.length === 1){
+        if (isUrl(rest[0])) url = rest[0]; else title = rest[0];
+      } else if (rest.length >= 2){
+        const firstNonUrl = rest.find(x=>!isUrl(x)) || '';
+        const firstUrl    = rest.find(x=>isUrl(x))  || '';
+        title = firstNonUrl;
+        url   = firstUrl;
+        const others = rest.filter(x=>x!==firstNonUrl && x!==firstUrl && !isUrl(x));
+        if (others.length) ref = others[0];
+      }
+      return { day, title, ref, url };
+    })
+    .filter(e=>e.day>=1 && e.day<=31);
+}
+ // 연간 포맷: "MM-DD|제목|본문(선택)|URL(선택)" → 해당 월만
+function parseYearly(text, month){
+  const mm = String(month).padStart(2,'0');
+  return text
+    .replace(/^\uFEFF/, '')
+    .split(/\r?\n/)
+    .map(l=>l.trim())
+    .filter(l=>l && !l.startsWith('#') && l.startsWith(mm+'-'))
+    .map(l=>{
+      const parts = l.split('|').map(s=>(s||'').trim());
+      const md = parts[0]||'';
+      const day = Number((md.split('-')[1]||'0'));
+
+      let title = '', ref = '', url = '';
+      const rest = parts.slice(1);
+
+      if (rest.length === 1){
+        if (isUrl(rest[0])) url = rest[0]; else title = rest[0];
+      } else if (rest.length >= 2){
+        const firstNonUrl = rest.find(x=>!isUrl(x)) || '';
+        const firstUrl    = rest.find(x=>isUrl(x))  || '';
+        title = firstNonUrl;
+        url   = firstUrl;
+        const others = rest.filter(x=>x!==firstNonUrl && x!==firstUrl && !isUrl(x));
+        if (others.length) ref = others[0];
+      }
+      return { day, title, ref, url };
+    })
+    .filter(e=>e.day>=1 && e.day<=31);
+}
+ 
+async function loadMonthData(year, month){
+  const ym = `${year}-${String(month).padStart(2,'0')}`;
+  const monthly = await tryFetch(`${DATA_DIR}/${ym}.txt`);
+  if (monthly != null) {
+    const parsed = parseMonthly(monthly);
+    if (parsed.length) return parsed;  // 월 파일이 비어있지 않으면 사용
   }
-  // 연간 포맷: "MM-DD|제목|본문(선택)|URL(선택)" → 해당 월만
-  function parseYearly(text, month){
-    const mm = pad2(month);
-    return text.split(/\r?\n/).map(l=>l.trim())
-      .filter(l=>l && !l.startsWith('#') && l.startsWith(mm+'-'))
-      .map(l=>{
-        const [md, title='', ref='', url=''] = l.split('|').map(s=>(s||'').trim());
-        const day = Number((md.split('-')[1]||'0'));
-        return { day, title, ref, url };
-      }).filter(e=>e.day>=1 && e.day<=31);
+  const yearly = await tryFetch(`${DATA_DIR}/${year}.txt`);
+  if (yearly != null) {
+    const parsed = parseYearly(yearly, month);
+    if (parsed.length) return parsed;  // 연간 파일에서 해당 월만 추출
   }
-  async function loadMonthData(year, month){
-    const ym = `${year}-${pad2(month)}`;
-    const monthly = await tryFetch(`${DATA_DIR}/${ym}.txt`);
-    if(monthly!=null) return parseMonthly(monthly);
-    const yearly = await tryFetch(`${DATA_DIR}/${year}.txt`);
-    if(yearly!=null) return parseYearly(yearly, month);
-    return [];
-  }
+  console.warn('No data parsed for', {year, month});
+  return [];
+}
     
   /* ===== 렌더링 ===== */
   function setYearLabel(year){
@@ -299,22 +356,31 @@ function setupHymnPlayer(year, month){
     const last  = new Date(year, month, 0);
     return { startWeekday: first.getDay(), totalDays: last.getDate() };
   }
-  function makeDayCellHTML(dayNum, entry){
-    const titleHTML = entry?.title
-      ? (entry.url ? `<a href="${entry.url}" target="_blank" rel="noopener">${entry.title}</a>` : entry.title)
-      : (entry?.url ? `<a href="${entry.url}" target="_blank" rel="noopener">열기</a>` : '');
-    const refHTML = entry?.ref ? `<div class="ref">${entry.ref}</div>` : '';
-    const linkClass = entry?.url ? 'box link' : 'box';
-    return `
-      <td>
-        <span class="daynum">${dayNum}</span>
-        <div class="${linkClass}" ${entry?.url ? `onclick="window.open('${entry.url}','_blank','noopener')"`:''}>
-          <div class="title" style="padding:8px 10px 4px; font-size:13px;">${titleHTML||''}</div>
-          <div style="padding:0 10px 10px; font-size:12px; color:var(--muted)">${refHTML}</div>
-        </div>
-      </td>
-    `;
-  }
+    
+function makeDayCellHTML(dayNum, entry){
+  const hasUrl = !!entry?.url;
+  const titleHTML = entry?.title
+    ? (hasUrl ? `${entry.title}` : `${entry.title}`)
+    : (hasUrl ? `열기` : '');
+  const refHTML = entry?.ref ? `<div class="ref">${entry.ref}</div>` : '';
+
+  const inner = `
+    <div class="title" style="padding:8px 10px 4px; font-size:13px;">${titleHTML||''}</div>
+    <div style="padding:0 10px 10px; font-size:12px; color:var(--muted)">${refHTML}</div>
+  `;
+
+  const box = hasUrl
+    ? `<a class="box link" href="${entry.url}" target="_blank" rel="noopener">${inner}</a>`
+    : `<div class="box">${inner}</div>`;
+
+  return `
+    <td>
+      <span class="daynum">${dayNum}</span>
+      ${box}
+    </td>
+  `;
+}
+
   function buildTableBody(year, month, entries){
     const { startWeekday, totalDays } = monthMeta(year, month);
     const byDay = new Map(entries.map(e=>[e.day, e]));
@@ -344,13 +410,36 @@ function setupHymnPlayer(year, month){
     const { y, m } = getYMFromURL();
     render(y, m);
   });
+    
 async function render(year, month){
   setYearLabel(year);
   buildMonthBar(year, month);
-  const tbody = qs('#tbody');
+
+ // ⬇️ 추가: 브랜드 배지를 현재 연/월로 동기화
+  const brand = document.getElementById('brand-link');
+  if (brand){
+    const u = new URL(location.href);
+    u.searchParams.set('y', String(year));
+    u.searchParams.set('m', String(month));
+    brand.href = u.pathname + u.search;
+  }
+
+  const tbody = document.querySelector('#tbody');
   if(tbody) tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--muted)">불러오는 중…</td></tr>`;
+
   const entries = await loadMonthData(year, month);
-  if(tbody) tbody.innerHTML = buildTableBody(year, month, entries);
+
+  if (!entries.length && tbody){
+    tbody.innerHTML = `
+      <tr>
+        <td colspan="7" style="padding:20px; text-align:center; color:var(--muted)">
+          데이터가 없습니다. <code>${DATA_DIR}/${year}-${String(month).padStart(2,'0')}.txt</code> 또는
+          <code>${DATA_DIR}/${year}.txt</code>를 확인하세요.
+        </td>
+      </tr>`;
+    setupHymnPlayer(year, month);
+    return;
+  }
 
   // ⬇️ 추가: 월별 찬양 플레이어 세팅
   setupHymnPlayer(year, month);
