@@ -140,6 +140,18 @@ table.cal {
       </a>
     </header>
 
+<!-- 🔊 월별 찬양 미니 플레이어 -->
+<div id="player" style="display:flex;gap:8px;justify-content:center;align-items:center;margin:10px 0;">
+  <button id="playBtn" style="padding:6px 10px;border:1px solid var(--line-strong);border-radius:10px;background:var(--bgsoft);cursor:pointer">
+    🔊 찬양 재생
+  </button>
+  <!-- MP3용 오디오 (기본 숨김) -->
+  <audio id="audio" preload="none" controls style="display:none;"></audio>
+  <!-- 유튜브용 iframe (기본 숨김) -->
+  <iframe id="yt" width="320" height="180" style="display:none;border:none"
+          src="" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+</div>
+
     <div class="yearbar" aria-label="연도">
       <div class="year" id="year-label"></div>
     </div>
@@ -156,9 +168,55 @@ table.cal {
   <script>
   /* ===== 설정 ===== */
   const DATA_DIR = 'data';     // 데이터 폴더
+/* ===== 월별 찬양 매핑 ===== */
+// 예시) 2025년 9월: 유튜브 영상ID, 10월: MP3 링크
+const HYMN = {
+  "2025-09": { type: "yt",  src: "영상ID_여기에",               title: "2025년 9월 찬양" },
+  // "2025-10": { type: "mp3", src: "https://example.com/oct.mp3", title: "2025년 10월 찬양" },
+};
   const DEFAULT_YEAR = 2025;   // 초기 표시 연도
   const DEFAULT_MONTH = 9;     // 초기 표시 월 (1~12)
 
+/* ===== 월별 찬양 플레이어 ===== */
+function setupHymnPlayer(year, month){
+  const ymKey = `${year}-${String(month).padStart(2,'0')}`;
+  const info = HYMN[ymKey];
+
+  const playBtn = document.getElementById('playBtn');
+  const audio  = document.getElementById('audio');
+  const yt     = document.getElementById('yt');
+
+  // 초기화
+  if (audio) { audio.pause(); audio.src=""; audio.style.display="none"; }
+  if (yt)    { yt.src=""; yt.style.display="none"; }
+  if (playBtn) playBtn.disabled = !info;
+
+  if (!info){
+    if (playBtn) playBtn.textContent = "🔇 이번 달 찬양 없음";
+    return;
+  }
+  playBtn.textContent = `🔊 ${info.title} 재생`;
+
+  // 버튼 클릭 시 재생 (모바일 자동재생 제한 회피)
+  playBtn.onclick = ()=>{
+    if (info.type === "mp3"){
+      audio.src = info.src;
+      audio.style.display = "block";
+      audio.play().catch(()=>{}); // 브라우저 정책으로 실패할 수 있음
+    } else if (info.type === "yt"){
+      // 유튜브 자동재생 + 반복
+      yt.src = `https://www.youtube.com/embed/${info.src}?autoplay=1&loop=1&playlist=${info.src}`;
+      yt.style.display = "block";
+    }
+  };
+
+  // 쿼리 파라미터로 즉시 재생 트리거 (?autoplay=1)
+  const params = new URL(location.href).searchParams;
+  if (params.get('autoplay') === '1'){
+    setTimeout(()=> playBtn.click(), 150);
+  }
+}
+    
   /* ===== 유틸 ===== */
   const pad2 = n => String(n).padStart(2,'0');
   const qs = (s,r=document)=>r.querySelector(s);
@@ -210,7 +268,7 @@ table.cal {
     if(yearly!=null) return parseYearly(yearly, month);
     return [];
   }
-
+    
   /* ===== 렌더링 ===== */
   function setYearLabel(year){
     const y = qs('#year-label');
@@ -277,16 +335,6 @@ table.cal {
     return html;
   }
 
-  /* ===== 메인 렌더 ===== */
-  async function render(year, month){
-    setYearLabel(year);
-    buildMonthBar(year, month);
-    const tbody = qs('#tbody');
-    if(tbody) tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--muted)">불러오는 중…</td></tr>`;
-    const entries = await loadMonthData(year, month);
-    if(tbody) tbody.innerHTML = buildTableBody(year, month, entries);
-  }
-
   /* ===== 시작 & 뒤/앞 이동 ===== */
   window.addEventListener('DOMContentLoaded', ()=>{
     const { y, m } = getYMFromURL();
@@ -296,6 +344,17 @@ table.cal {
     const { y, m } = getYMFromURL();
     render(y, m);
   });
+async function render(year, month){
+  setYearLabel(year);
+  buildMonthBar(year, month);
+  const tbody = qs('#tbody');
+  if(tbody) tbody.innerHTML = `<tr><td colspan="7" style="padding:20px; text-align:center; color:var(--muted)">불러오는 중…</td></tr>`;
+  const entries = await loadMonthData(year, month);
+  if(tbody) tbody.innerHTML = buildTableBody(year, month, entries);
+
+  // ⬇️ 추가: 월별 찬양 플레이어 세팅
+  setupHymnPlayer(year, month);
+}  
   </script>
 </body>
 </html>
