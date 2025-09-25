@@ -263,9 +263,11 @@ function getYMFromURL(){
       return await r.text();
     }catch(e){ return null; }
   }
- 
-    // 월별 포맷: "DD|제목|본문(선택)|URL(선택)"
+  
+// 월별 포맷: "DD|제목|본문(선택)|네이버/티스토리 URL 2개" (순서 상관없음)
 function parseMonthly(text){
+  const host  = u => { try{ return new URL(u).host; }catch(_){ return ''; } };
+
   return text
     .replace(/^\uFEFF/, '') // BOM 제거
     .split(/\r?\n/)
@@ -273,28 +275,34 @@ function parseMonthly(text){
     .filter(l=>l && !l.startsWith('#'))
     .map(l=>{
       const parts = l.split('|').map(s=>(s||'').trim());
-      const day = Number(parts[0])||0;
+      const day   = Number(parts[0])||0;
 
-      let title = '', ref = '', url = '';
-      const rest = parts.slice(1);
+      const rest   = parts.slice(1);
+      const isUrl  = (s)=>/^https?:\/\//i.test(s||'');
+      const urls   = rest.filter(isUrl);
+      const texty  = rest.filter(x=>!isUrl(x));
 
-      if (rest.length === 1){
-        if (isUrl(rest[0])) url = rest[0]; else title = rest[0];
-      } else if (rest.length >= 2){
-        const firstNonUrl = rest.find(x=>!isUrl(x)) || '';
-        const firstUrl    = rest.find(x=>isUrl(x))  || '';
-        title = firstNonUrl;
-        url   = firstUrl;
-        const others = rest.filter(x=>x!==firstNonUrl && x!==firstUrl && !isUrl(x));
-        if (others.length) ref = others[0];
+      const title  = texty[0] || '';
+      const ref    = texty[1] || '';
+
+      let naver='', tistory='';
+      for (const u of urls){
+        const h = host(u);
+        if (h.includes('blog.naver.com')) naver   ||= u;
+        if (h.includes('tistory.com'))    tistory ||= u;
       }
-      return { day, title, ref, url };
+      const url = urls[0] || ''; // 하위호환 슬롯
+
+      return { day, title, ref, url, naver, tistory };
     })
     .filter(e=>e.day>=1 && e.day<=31);
 }
- // 연간 포맷: "MM-DD|제목|본문(선택)|URL(선택)" → 해당 월만
+ 
+// 연간 포맷: "MM-DD|제목|본문(선택)|네이버/티스토리 URL 2개" → 해당 월만 추출
 function parseYearly(text, month){
   const mm = String(month).padStart(2,'0');
+  const host  = u => { try{ return new URL(u).host; }catch(_){ return ''; } };
+
   return text
     .replace(/^\uFEFF/, '')
     .split(/\r?\n/)
@@ -302,27 +310,30 @@ function parseYearly(text, month){
     .filter(l=>l && !l.startsWith('#') && l.startsWith(mm+'-'))
     .map(l=>{
       const parts = l.split('|').map(s=>(s||'').trim());
-      const md = parts[0]||'';
+      const md  = parts[0]||'';
       const day = Number((md.split('-')[1]||'0'));
 
-      let title = '', ref = '', url = '';
-      const rest = parts.slice(1);
+      const rest   = parts.slice(1);
+      const isUrl  = (s)=>/^https?:\/\//i.test(s||'');
+      const urls   = rest.filter(isUrl);
+      const texty  = rest.filter(x=>!isUrl(x));
 
-      if (rest.length === 1){
-        if (isUrl(rest[0])) url = rest[0]; else title = rest[0];
-      } else if (rest.length >= 2){
-        const firstNonUrl = rest.find(x=>!isUrl(x)) || '';
-        const firstUrl    = rest.find(x=>isUrl(x))  || '';
-        title = firstNonUrl;
-        url   = firstUrl;
-        const others = rest.filter(x=>x!==firstNonUrl && x!==firstUrl && !isUrl(x));
-        if (others.length) ref = others[0];
+      const title  = texty[0] || '';
+      const ref    = texty[1] || '';
+
+      let naver='', tistory='';
+      for (const u of urls){
+        const h = host(u);
+        if (h.includes('blog.naver.com')) naver   ||= u;
+        if (h.includes('tistory.com'))    tistory ||= u;
       }
-      return { day, title, ref, url };
+      const url = urls[0] || '';
+
+      return { day, title, ref, url, naver, tistory };
     })
     .filter(e=>e.day>=1 && e.day<=31);
 }
- 
+
 async function loadMonthData(year, month){
   const ym = `${year}-${String(month).padStart(2,'0')}`;
   const monthly = await tryFetch(`${DATA_DIR}/${ym}.txt`);
@@ -358,6 +369,8 @@ async function loadMonthData(year, month){
         const url = new URL(location.href);
         url.searchParams.set('y', String(year));
         url.searchParams.set('m', String(m));
+        const src = new URL(location.href).searchParams.get('src');
+        if (src) url.searchParams.set('src', src); // ← src 유지
         history.pushState({},'',url);
         render(year,m);
       });
@@ -369,27 +382,29 @@ async function loadMonthData(year, month){
     const last  = new Date(year, month, 0);
     return { startWeekday: first.getDay(), totalDays: last.getDate() };
   }
-    
+
 function makeDayCellHTML(dayNum, entry){
-  const hasUrl = !!entry?.url;
-  const titleHTML = entry?.title
-    ? (hasUrl ? `${entry.title}` : `${entry.title}`)
-    : (hasUrl ? `열기` : '');
-  const refHTML = entry?.ref ? `<div class="ref">${entry.ref}</div>` : '';
+  const pref = getSourcePref(); // 'naver' | 'tistory' | ''
+  let primary =
+    (pref === 'naver'   && entry?.naver)   ? entry.naver :
+    (pref === 'tistory' && entry?.tistory) ? entry.tistory :
+    (entry?.tistory || entry?.naver || entry?.url || '');
+
+  const titleText = entry?.title || (primary ? '열기' : '');
+  const refHTML   = entry?.ref ? `<div class="ref">${entry.ref}</div>` : '';
+  const titleHTML = primary
+    ? `<a class="mainlink" href="${primary}" target="_blank" rel="noopener">${titleText}</a>`
+    : `${titleText}`;
 
   const inner = `
-    <div class="title" style="padding:8px 10px 4px; font-size:13px;">${titleHTML||''}</div>
-    <div style="padding:0 10px 10px; font-size:12px; color:var(--muted)">${refHTML}</div>
+    <div class="title" style="padding:8px 10px 2px; font-size:13px;">${titleHTML}</div>
+    ${refHTML}
   `;
-
-  const box = hasUrl
-    ? `<a class="box link" href="${entry.url}" target="_blank" rel="noopener">${inner}</a>`
-    : `<div class="box">${inner}</div>`;
 
   return `
     <td>
       <span class="daynum">${dayNum}</span>
-      ${box}
+      <div class="box">${inner}</div>
     </td>
   `;
 }
