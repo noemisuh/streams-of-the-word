@@ -361,19 +361,26 @@ const ymQP    = usp.get('ym');                 // "YYYY-MM"
 const yQP     = usp.get('y');                  // "YYYY"
 const lang    = usp.get('lang') || 'ko';
 
+// ✅ 추가: m 파라미터(1~12)도 허용
+const mQPraw  = usp.get('m');
+const mQP     = mQPraw ? parseInt(mQPraw, 10) : NaN;  
+
 let currentYear, currentMonth;                 // 1~12
 (function decideInitialYM(){
+ // 1) ym=YYYY-MM 이 오면 최우선  
   if (ymQP && /^\d{4}-\d{2}$/.test(ymQP)) {
     const [y, m] = ymQP.split('-').map(Number);
     currentYear  = y;
     currentMonth = m;
     return;
   }
+  // 2) 아니면 y, m 분리 처리 (없으면 기본/오늘)
   const now = new Date();
   const fallbackY = (typeof DEFAULT_YEAR  !== 'undefined' ? DEFAULT_YEAR  : now.getFullYear());
   const fallbackM = (typeof DEFAULT_MONTH !== 'undefined' ? DEFAULT_MONTH : now.getMonth() + 1);
-  currentYear  = Number(yQP) || fallbackY;
-  currentMonth = fallbackM;
+  // ✅ 여기서 m=10이 오면 그걸 우선
+ currentYear  = (yQP && /^\d{4}$/.test(yQP)) ? Number(yQP) : fallbackY;
+  currentMonth = (!Number.isNaN(mQP) && mQP >= 1 && mQP <= 12) ? mQP : fallbackM;
 })();
 
 // 월 이동 유틸 / 링크 생성
