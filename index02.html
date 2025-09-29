@@ -1,0 +1,157 @@
+<script type="text/javascript">
+(function(){
+  // ===== URL =====
+  var u=new URL(location.href);
+  var Y=+(u.searchParams.get('y')||u.searchParams.get('year'))||(new Date()).getFullYear();
+  var M=+(u.searchParams.get('m')||u.searchParams.get('month'))||((new Date()).getMonth()+1);
+  var lang=(u.searchParams.get('lang')||'ko').toLowerCase();
+
+  // ===== 유틸 =====
+  function pad2(n){return(n<10?'0':'')+n}
+  function looksUrl(s){return !!s&&(s.indexOf('http://')===0||s.indexOf('https://')===0)}
+  function linkTo(y,m){var x=new URL(location.href);x.search='';x.searchParams.set('lang',lang);x.searchParams.set('y',y);x.searchParams.set('m',m);return x.toString()}
+  function daysInMonth(y,m){return new Date(y,m,0).getDate()}
+  function startWeekday(y,m){return new Date(y,m-1,1).getDay()}
+
+  // ===== 상태 배지 =====
+  function showStatus(text, ok){
+    var s=document.getElementById('cal-status');
+    if(!s){ s=document.createElement('div'); s.id='cal-status'; document.body.insertBefore(s, document.body.firstChild); }
+    s.style.cssText="position:sticky;top:0;z-index:9999;margin:0;padding:8px 12px;font:13px/1.2 ui-sans-serif,system-ui;"+(ok?"background:#ecfdf5;color:#065f46;border:1px solid #a7f3d0;border-left:6px solid #10b981;border-radius:8px;":"background:#fef2f2;color:#991b1b;border:1px solid #fecaca;border-left:6px solid #ef4444;border-radius:8px;");
+    s.textContent=text;
+  }
+
+  // ===== 요소 확보/생성 (없으면 만들어줌) =====
+  var yearbar=document.querySelector('.yearbar');
+  if(!yearbar){
+    yearbar=document.createElement('nav');
+    yearbar.className='yearbar';
+    yearbar.innerHTML='<a id="yearPrev">◀</a><div class="year" id="yearLabel">—</div><a id="yearNext">▶</a>';
+    document.body.insertBefore(yearbar, document.body.firstChild);
+  }
+  var yearLabel=document.getElementById('yearLabel');
+  var yearPrev=document.getElementById('yearPrev');
+  var yearNext=document.getElementById('yearNext');
+
+  var monthsBar=document.getElementById('months');
+  if(!monthsBar){
+    monthsBar=document.createElement('div');
+    monthsBar.id='months';
+    monthsBar.className='months';
+    yearbar.parentNode.insertBefore(monthsBar, yearbar.nextSibling);
+  }
+
+  var grid=document.getElementById('grid')||
+            document.querySelector('[data-cal-grid]')||
+            document.querySelector('.calendar-grid')||
+            document.querySelector('.grid');
+  if(!grid){
+    var cal=document.querySelector('.cal');
+    if(!cal){
+      cal=document.createElement('section'); cal.className='cal';
+      var head=document.createElement('div'); head.className='head';
+      head.innerHTML='<div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>';
+      cal.appendChild(head);
+      document.body.appendChild(cal);
+    }
+    grid=document.createElement('div'); grid.id='grid'; grid.className='grid'; cal.appendChild(grid);
+  }
+
+  // ===== 상단 바 세팅 =====
+  if(yearLabel) yearLabel.textContent=Y+'년';
+  if(yearPrev)  yearPrev.href=linkTo(Y-1,M);
+  if(yearNext)  yearNext.href=linkTo(Y+1,M);
+  if(monthsBar){
+    monthsBar.innerHTML='';
+    for(var mm=1;mm<=12;mm++){
+      var a=document.createElement('a');
+      a.href=linkTo(Y,mm); a.textContent=mm+'월';
+      if(mm===M) a.classList.add('active');
+      monthsBar.appendChild(a);
+    }
+  }
+
+  // ===== 숫자 그리드 강제 생성 =====
+  function ensureGrid(){
+    if(grid.querySelector('.day')) return;
+    var total=daysInMonth(Y,M), start=startWeekday(Y,M);
+    grid.innerHTML='';
+    var cells=Math.ceil((start+total)/7)*7;
+    var today=new Date(), isThis=(today.getFullYear()===Y)&&((today.getMonth()+1)===M);
+    for(var i=0;i<cells;i++){
+      var day=(i>=start&&(i-start)<total)?(i-start+1):null;
+      var cell=document.createElement('div'); cell.className='day';
+      if(day===null){ cell.classList.add('empty'); }
+      else{
+        var d=document.createElement('div'); d.className='date'; d.textContent=String(day); cell.appendChild(d);
+        if(isThis && day===today.getDate()) cell.classList.add('today');
+      }
+      grid.appendChild(cell);
+    }
+  }
+
+  // ===== 데이터 로드 =====
+  function loadData(y,m,done){
+    var fname=y+"-"+pad2(m)+".txt";
+    var tried=[];
+    var candidates=["data/"+fname,"../data/"+fname,"../../data/"+fname];
+    var parts=location.pathname.split('/').filter(function(v){return !!v});
+    if(parts.length>=1) candidates.push("/"+parts[0]+"/data/"+fname);
+
+    var i=0;
+    function next(){
+      if(i>=candidates.length){ showStatus("데이터 파일을 찾지 못했습니다: "+tried.join(" → "), false); done({}); return; }
+      var url=candidates[i++]; tried.push(url);
+      fetch(url,{cache:"no-store"}).then(function(res){
+        if(!res.ok) throw new Error("HTTP "+res.status);
+        return res.text();
+      }).then(function(txt){
+        // 줄 나누기(CR 제거, 정규식 X)
+        var arr=txt.split("\n"), lines=[], k, line;
+        for(k=0;k<arr.length;k++){ line=arr[k]; if(line && line.length && line.charCodeAt(line.length-1)===13) line=line.slice(0,-1); lines.push(line); }
+        // 파싱
+        var map={}, j, raw, p, t;
+        for(j=0;j<lines.length;j++){
+          raw=(lines[j]||'').trim(); if(!raw || raw.charAt(0)==='#') continue;
+          p=raw.split("|"); for(t=0;t<p.length;t++){ p[t]=(p[t]||"").trim(); }
+          var day=parseInt(p[0],10); if(!day||isNaN(day)) continue;
+          var title=p[1]||"";
+          var first=""; if(p.length>=4){ first=p[3]; } else if(p.length>=3 && looksUrl(p[2])){ first=p[2]; }
+          var second=p[4]||"";
+          var href=looksUrl(first)?first:(looksUrl(second)?second:"");
+          map[day]={title:title, href:href};
+        }
+        showStatus("데이터 OK: "+url, true);
+        done(map);
+      }).catch(function(){ next(); });
+    }
+    next();
+  }
+
+  // ===== 제목/링크 꽂기 =====
+  function fill(map){
+    var cells=grid.querySelectorAll('.day');
+    for(var i=0;i<cells.length;i++){
+      var cell=cells[i]; if(cell.classList.contains('empty')) continue;
+      var dateEl=cell.querySelector('.date'); if(!dateEl) continue;
+      var dd=parseInt(String(dateEl.textContent||'').trim(),10); if(!dd||!map[dd]) continue;
+      var info=map[dd];
+
+      if(info.href && !dateEl.querySelector('a')){
+        var da=document.createElement('a'); da.href=info.href; da.target='_blank'; da.rel='noopener';
+        da.textContent=String(dd); dateEl.textContent=''; dateEl.appendChild(da);
+      }
+      if(info.title){
+        var tDiv=cell.querySelector('.title'); if(!tDiv){ tDiv=document.createElement('div'); tDiv.className='title'; cell.appendChild(tDiv); }
+        tDiv.innerHTML='';
+        if(info.href){ var a=document.createElement('a'); a.href=info.href; a.target='_blank'; a.rel='noopener'; a.textContent=info.title; tDiv.appendChild(a); }
+        else { tDiv.textContent=info.title; }
+      }
+    }
+  }
+
+  // 실행
+  ensureGrid();
+  loadData(Y,M,function(map){ try{ fill(map||{}); }catch(e){} });
+})();
+</script>
