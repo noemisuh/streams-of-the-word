@@ -87,7 +87,7 @@
     </section>
   </div>
 
-<script type="text/javascript">
+ <script type="text/javascript">
 (function(){
   // ===== URL =====
   var u=new URL(location.href);
@@ -95,34 +95,76 @@
   var M=+(u.searchParams.get('m')||u.searchParams.get('month'))||((new Date()).getMonth()+1);
   var lang=(u.searchParams.get('lang')||'ko').toLowerCase();
 
-  // ===== 요소 =====
-  var grid=document.getElementById('grid')||document.querySelector('[data-cal-grid]')||document.querySelector('.calendar-grid')||document.querySelector('.grid');
-  var yearLabel=document.getElementById('yearLabel');
-  var yearPrev=document.getElementById('yearPrev');
-  var yearNext=document.getElementById('yearNext');
-  var monthsBar=document.getElementById('months');
-
   // ===== 유틸 =====
   function pad2(n){return(n<10?'0':'')+n}
   function looksUrl(s){return !!s&&(s.indexOf('http://')===0||s.indexOf('https://')===0)}
-  function linkTo(y,m){var x=new URL(location.href);x.search='';x.searchParams.set('lang',lang);x.searchParams.set('y',y);x.searchParams.set('m',m);return x.toString()}
+  function linkTo(y,m){
+    // 현재 경로 그대로 유지(404 방지). 쿼리만 교체.
+    var x=new URL(location.href);
+    x.search=''; x.searchParams.set('lang',lang); x.searchParams.set('y',y); x.searchParams.set('m',m);
+    return x.toString();
+  }
   function daysInMonth(y,m){return new Date(y,m,0).getDate()}
   function startWeekday(y,m){return new Date(y,m-1,1).getDay()}
 
-  // ===== 상단 바 보정 =====
-  if(yearLabel) yearLabel.textContent=Y+'년';
+  // ===== 요소 확보/생성 =====
+  var yearbar=document.querySelector('.yearbar');
+  var yearLabel=document.getElementById('yearLabel');
+  var yearPrev=document.getElementById('yearPrev');
+  var yearNext=document.getElementById('yearNext');
+
+  var monthsBar=document.getElementById('months');
+  if(!monthsBar){
+    // 없으면 yearbar 다음에 생성
+    monthsBar=document.createElement('div');
+    monthsBar.id='months';
+    monthsBar.className='months';
+    if(yearbar && yearbar.parentNode){
+      yearbar.parentNode.insertBefore(monthsBar, yearbar.nextSibling);
+    }else{
+      document.body.insertBefore(monthsBar, document.body.firstChild);
+    }
+  }
+
+  // 달력 그리드 컨테이너
+  var grid=document.getElementById('grid')||
+            document.querySelector('[data-cal-grid]')||
+            document.querySelector('.calendar-grid')||
+            document.querySelector('.grid');
+
+  // 없으면 .cal 섹션을 찾고 그 안에 만들어줌
+  if(!grid){
+    var cal=document.querySelector('.cal');
+    if(!cal){
+      // 요일 헤더가 있다면 그 바로 아래에 생성
+      var head=document.querySelector('.cal .head')||document.querySelector('.head');
+      if(head && head.parentNode){
+        grid=document.createElement('div'); grid.id='grid'; grid.className='grid';
+        head.parentNode.appendChild(grid);
+      }
+    }else{
+      grid=document.createElement('div'); grid.id='grid'; grid.className='grid';
+      cal.appendChild(grid);
+    }
+  }
+
+  // ===== 상단 바 세팅 =====
+  if(yearLabel) yearLabel.textContent=Y+'년';  // '—' 방지
   if(yearPrev)  yearPrev.href=linkTo(Y-1,M);
   if(yearNext)  yearNext.href=linkTo(Y+1,M);
+
+  // 월 링크 바 세팅(없으면 자동 생성됨)
   if(monthsBar){
     monthsBar.innerHTML='';
     for(var mm=1;mm<=12;mm++){
-      var a=document.createElement('a'); a.href=linkTo(Y,mm); a.textContent=mm+'월';
+      var a=document.createElement('a');
+      a.href=linkTo(Y,mm); a.textContent=mm+'월';
       if(mm===M) a.classList.add('active');
       monthsBar.appendChild(a);
     }
   }
 
-  // ===== 스타일 주입(제목 박스/날짜 링크) =====
+  // ===== 스타일 주입(최소) =====
   (function(){
     var css=""
     +".titleCard{margin-top:2px;border:1px solid #e5e7eb;background:rgba(0,0,0,.03);border-radius:10px;padding:8px 10px;box-shadow:0 1px 0 rgba(0,0,0,.05)}"
@@ -132,12 +174,11 @@
     var s=document.createElement('style'); s.textContent=css; document.head.appendChild(s);
   })();
 
-  // ===== 숫자 그리드 강제 생성 (비어있으면) =====
+  // ===== 숫자 그리드 강제 생성 =====
   function ensureGrid(){
     if(!grid) return;
-    // 이미 날짜 칸이 있으면 스킵
-    var hasDay = grid.querySelector('.day');
-    if(hasDay) return;
+    // 이미 날짜 셀 있으면 스킵
+    if(grid.querySelector('.day')) return;
 
     var total=daysInMonth(Y,M), start=startWeekday(Y,M);
     grid.innerHTML='';
@@ -159,8 +200,14 @@
   // ===== 데이터 로드 =====
   function loadData(y,m,done){
     var fname=y+"-"+pad2(m)+".txt";
-    var candidates=["data/"+fname,"../data/"+fname,"../../data/"+fname];
-    var parts=location.pathname.split('/').filter(function(v){return !!v}); if(parts.length>=1) candidates.push("/"+parts[0]+"/data/"+fname);
+    // 현재 문서 경로를 유지하면서 상대경로 우선
+    var candidates=[
+      "data/"+fname,
+      "../data/"+fname,
+      "../../data/"+fname
+    ];
+    var parts=location.pathname.split('/').filter(function(v){return !!v});
+    if(parts.length>=1) candidates.push("/"+parts[0]+"/data/"+fname);
 
     var i=0;
     function next(){
@@ -194,7 +241,32 @@
   function fill(map){
     if(!grid) return;
     var cells=grid.querySelectorAll('.day');
-    for(var i=0;i<cells.length
-  </script>      
+    for(var i=0;i<cells.length;i++){
+      var cell=cells[i]; if(cell.classList.contains('empty')) continue;
+      var dateEl=cell.querySelector('.date'); if(!dateEl) continue;
+      var dd=parseInt(String(dateEl.textContent||'').trim(),10); if(!dd||!map[dd]) continue;
+      var info=map[dd];
+
+      // 날짜도 링크
+      if(info.href && !dateEl.querySelector('a')){
+        var da=document.createElement('a'); da.href=info.href; da.target='_blank'; da.rel='noopener';
+        da.textContent=String(dd); dateEl.textContent=''; dateEl.appendChild(da);
+      }
+      // 제목 카드
+      if(info.title){
+        var box=cell.querySelector('.titleCard'); if(!box){ box=document.createElement('div'); box.className='titleCard'; cell.appendChild(box); }
+        var tDiv=box.querySelector('.title'); if(!tDiv){ tDiv=document.createElement('div'); tDiv.className='title'; box.appendChild(tDiv); }
+        tDiv.innerHTML='';
+        if(info.href){ var a=document.createElement('a'); a.href=info.href; a.target='_blank'; a.rel='noopener'; a.textContent=info.title; tDiv.appendChild(a); }
+        else { tDiv.textContent=info.title; }
+      }
+    }
+  }
+
+  // ===== 실행 =====
+  ensureGrid();           // 숫자 칸부터 강제 생성
+  loadData(Y,M,function(map){ try{ fill(map||{}); }catch(e){} }); // 제목/링크 채우기
+})();
+</script>
 </body>
 </html>
