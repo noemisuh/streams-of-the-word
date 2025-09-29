@@ -20,6 +20,7 @@
   .wrap { max-width: 940px; margin: 28px auto; padding: 0 12px; }
 
 header { display:flex; justify-content:center; align-items:center; margin:6px 0 4px; }
+
 /* 헤더 배지 + 링크 스타일 */
 .brand{
   display:inline-flex;
@@ -33,7 +34,22 @@ header { display:flex; justify-content:center; align-items:center; margin:6px 0 
   color:inherit;          /* 링크 색상 상속 */
 }
 .brand h1{ font-size:16px; margin:0; letter-spacing:-0.2px; font-weight:700; }
-/* 달력 셀 전체 링크(날짜+제목) 밑줄 제거 + 테마 하단선 제거 */
+
+/* 달력 셀 전체 클릭 영역 + 기본 패딩 제거 */
+td { padding: 0; }              /* 필요 시 td.day 로 좁혀도 됨 */
+.day-link{
+  display:block; width:100%; height:100%;
+  padding:10px 12px;
+  text-decoration:none; color:inherit;
+}
+
+/* 호버 강조 */
+.day-link:hover{
+  background:rgba(14,165,233,.08);
+  outline:1px solid rgba(14,165,233,.3);
+}
+
+/* 달력 셀 링크 밑줄/하단선 완전 제거 (테마보다 우선) */
 .day-link,
 .day-link:link,
 .day-link:visited,
@@ -41,10 +57,9 @@ header { display:flex; justify-content:center; align-items:center; margin:6px 0 
 .day-link:active {
   text-decoration: none !important;
   border-bottom: 0 !important;
-  color: inherit !important;  /* 테마 색상 강제 상속 */
+  color: inherit !important;
 }
-
-/* 내부 요소에도 밑줄/하단선 방지 (제목 span/div 등) */
+/* 내부 요소에도 밑줄/하단선 방지 */
 .day-link * {
   text-decoration: none !important;
   border-bottom: 0 !important;
@@ -614,11 +629,27 @@ function renderCalendar(year, month, entries){
     brand.href = u.pathname + u.search;
   }
 }
-<!-- BEGIN SORA: cell-wide link enhancer -->
+  
 <script>
 (function(){
   if (window.__sora_cellwrap_installed__) return;
   window.__sora_cellwrap_installed__ = true;
+
+  // (옵션) 문서에 한 번만 스타일 주입 — 테마가 밑줄을 강제해도 무력화
+  (function ensureDayLinkStyle(){
+    if (document.getElementById('daylink-nounderline-style')) return;
+    const st = document.createElement('style');
+    st.id = 'daylink-nounderline-style';
+    st.textContent = `
+      a.day-link,
+      a.day-link:link,
+      a.day-link:visited,
+      a.day-link:hover,
+      a.day-link:active { text-decoration:none !important; border-bottom:0 !important; }
+      a.day-link * { text-decoration:none !important; border-bottom:0 !important; }
+    `;
+    document.head.appendChild(st);
+  })();
 
   function wrapCells(scopeEl){
     if (!scopeEl) return;
@@ -629,9 +660,14 @@ function renderCalendar(year, month, entries){
       if (!firstLink) return;
 
       const url = firstLink.getAttribute('href');
+
       const wrapper = document.createElement('a');
       wrapper.className = 'day-link';
       wrapper.href = url; wrapper.target = '_blank'; wrapper.rel = 'noopener';
+
+      /* 밑줄/하단선 강제 제거 (JS로도 보강) */
+      wrapper.style.setProperty('text-decoration', 'none', 'important');
+      wrapper.style.setProperty('border-bottom', '0', 'important');
 
       while (td.firstChild) wrapper.appendChild(td.firstChild);
       td.appendChild(wrapper);
@@ -643,18 +679,21 @@ function renderCalendar(year, month, entries){
     wrapCells(tbody);
   }
 
-  if (document.readyState === 'loading'){
+  // 초기 1회
+  if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', enhance);
   } else {
     enhance();
   }
 
+  // 내용 변경 시 자동 재적용
   const tbody = document.querySelector('#tbody');
   if (tbody){
     const obs = new MutationObserver(enhance);
     obs.observe(tbody, { childList:true, subtree:true });
   }
 
+  // 필요 시 수동 호출용
   window.enhanceCalendarCells = enhance;
 })();
 </script>
