@@ -170,7 +170,6 @@ a.box.link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px
   </div>
 
 <script>
-<script>
 /* ======================================
    설정 (Config)
 ====================================== */
@@ -259,11 +258,14 @@ async function tryFetch(path){
     return await r.text();
   }catch(e){ return null; }
 }
+
+// 월별(txt: YYYY-MM.txt) 전용 파서  — 형식: DD|제목|본문|링크...
 function parseMonthly(text){
   const host  = u => { try{ return new URL(u).host; }catch(_){ return ''; } };
-  return text
+  return (text||'')
     .replace(/^\uFEFF/, '')
-    .split(/\r?\n/).map(l=>l.trim())
+    .split(/\r?\n/)
+    .map(l=>l.trim())
     .filter(l=>l && !l.startsWith('#'))
     .map(l=>{
       const parts = l.split('|').map(s=>(s||'').trim());
@@ -288,17 +290,21 @@ function parseMonthly(text){
     })
     .filter(e=>e.day>=1 && e.day<=31);
 }
+
+// 연간(txt: YYYY.txt) 전용 파서 — 형식: MM-DD|제목|본문|링크...
 function parseYearly(text, month){
   const mm = String(month).padStart(2,'0');
   const host  = u => { try{ return new URL(u).host; }catch(_){ return ''; } };
-  return text
+
+  return (text||'')
     .replace(/^\uFEFF/, '')
-    .split(/\r?\n/).map(l=>l.trim())
-    .filter(l=>l && !l.startsWith('#') && l.startsWith(mm+'-'))
+    .split(/\r?\n/)
+    .map(l=>l.trim())
+    .filter(l=>l && !l.startsWith('#') && l.startsWith(mm + '-'))
     .map(l=>{
       const parts = l.split('|').map(s=>(s||'').trim());
-      const md  = parts[0]||'';
-      const day = Number((md.split('-')[1]||'0'));
+      const md  = parts[0]||'';                    // "MM-DD"
+      const day = Number((md.split('-')[1]||'0'));  // DD
 
       const rest  = parts.slice(1);
       const isU   = (s)=>/^https?:\/\//i.test(s||'');
@@ -319,6 +325,7 @@ function parseYearly(text, month){
     })
     .filter(e=>e.day>=1 && e.day<=31);
 }
+
 async function loadMonthData(year, month){
   const ym = `${year}-${String(month).padStart(2,'0')}`;
   const monthly = await tryFetch(`${DATA_DIR}/${ym}.txt`);
