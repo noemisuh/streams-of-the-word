@@ -105,8 +105,46 @@
     background:rgba(0,0,0,.03);
   }
   .yearbar a, .months a{ border-radius:12px !important; padding:6px 10px !important; }
-</style>
- 
+<style id="hotfix-reset">
+  /* 상단 사이트 제목: 더 작게 + 위쪽 여백 넉넉 */
+  .title-site{
+    font-size: 20px !important;
+    font-weight: 900;
+    margin: 3.5em 0 14px !important; /* 위 여백 크게 */
+    letter-spacing: .02em;
+  }
+
+  /* 달력 셀 최소 높이 살짝만 */
+  .day{ min-height: 110px !important; gap:8px !important; }
+
+  /* 날짜칩 유지하되 낮은 대비 */
+  .date a{
+    display:inline-block;
+    padding:2px 6px !important;
+    border:1px solid #e5e7eb !important;
+    border-radius:8px !important;
+    background:rgba(0,0,0,.02) !important;
+    color:inherit !important; text-decoration:none !important;
+  }
+
+  /* 제목: 둥근 네모 박스 제거하고 평평하게 */
+  .titleCard{
+    background: transparent !important;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+    margin-top: 2px !important;
+  }
+  .titleCard .title a{
+    font-size: 16px !important;   /* 필요시 15~18px 조절 */
+    line-height: 1.35 !important;
+    font-weight: 700 !important;
+    text-decoration: none !important;
+    display:block; overflow:hidden; text-overflow:ellipsis;
+  }
+
+  /* 월 링크 바/연도 화살표 버튼 여백·모서리 적당히 */
+  .yearbar a, .months a{ border-radius:12px !important; padding:6px 10px !important; }    
   </style>
 </head>
 <body>
