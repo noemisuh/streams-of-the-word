@@ -134,8 +134,20 @@ a.box.link:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px
   .cal thead th { padding:8px; font-size:12px; }
   .title { line-height:1.45; }
 }
+  
+ td { padding: 0; }
+  .day-link{
+    display:block; width:100%; height:100%;
+    padding:10px 12px;
+    text-decoration:none; color:inherit;
+  }
+  .day-link:hover{
+    background:rgba(14,165,233,.08);
+    outline:1px solid rgba(14,165,233,.3);
+  } 
 </style>
 </head>
+  
 <body>
   <div class="wrap">
     <header>
@@ -586,6 +598,49 @@ function renderCalendar(year, month, entries){
     brand.href = u.pathname + u.search;
   }
 }
+<!-- BEGIN SORA: cell-wide link enhancer -->
+<script>
+(function(){
+  if (window.__sora_cellwrap_installed__) return;
+  window.__sora_cellwrap_installed__ = true;
+
+  function wrapCells(scopeEl){
+    if (!scopeEl) return;
+    const tds = scopeEl.querySelectorAll('td');
+    tds.forEach(td=>{
+      if (td.querySelector('a.day-link')) return;
+      const firstLink = td.querySelector('a[href]');
+      if (!firstLink) return;
+
+      const url = firstLink.getAttribute('href');
+      const wrapper = document.createElement('a');
+      wrapper.className = 'day-link';
+      wrapper.href = url; wrapper.target = '_blank'; wrapper.rel = 'noopener';
+
+      while (td.firstChild) wrapper.appendChild(td.firstChild);
+      td.appendChild(wrapper);
+    });
+  }
+
+  function enhance(){
+    const tbody = document.querySelector('#tbody');
+    wrapCells(tbody);
+  }
+
+  if (document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', enhance);
+  } else {
+    enhance();
+  }
+
+  const tbody = document.querySelector('#tbody');
+  if (tbody){
+    const obs = new MutationObserver(enhance);
+    obs.observe(tbody, { childList:true, subtree:true });
+  }
+
+  window.enhanceCalendarCells = enhance;
+})();
 </script>
 </body>
 </html>
