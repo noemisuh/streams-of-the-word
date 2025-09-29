@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>말씀따라 흐르는 샘물 · 달력</title>
+  <meta name="color-scheme" content="light dark" />
+  <style>
+    :root{
+      --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --line-strong:#cbd5e1;
+      --bg:#ffffff; --bgsoft:#f8fafc; --box:#ffffff; --tint:#f0f9ff; --accent:#0ea5e9;
+    }
+    @media (prefers-color-scheme: dark){
+      :root{ --fg:#e5e7eb; --muted:#9ca3af; --line:#1f2937; --line-strong:#374151;
+             --bg:#0b0f14; --bgsoft:#0f1720; --box:#0b1220; --tint:#0b1a2a; --accent:#38bdf8; }
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Apple SD Gothic Neo,Apple Color Emoji,Noto Sans KR,Helvetica,Arial,sans-serif; color:var(--fg); background:var(--bgsoft)}
+    .wrap{max-width:1080px;margin:24px auto;padding:0 16px}
+
+    header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.02em}
+    .brand .dot{width:14px;height:14px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 4px color-mix(in oklab, var(--accent) 20%, transparent)}
+    .muted{color:var(--muted)}
+
+    .controls{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+    .controls a, .controls button{
+      appearance:none;border:1px solid var(--line);background:var(--box);color:var(--fg);
+      padding:6px 10px;border-radius:10px;cursor:pointer;text-decoration:none;font-size:14px
+    }
+
+    .cal{background:var(--box);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+    .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--tint)}
+    .cal .head div{padding:10px 8px;text-align:center;font-weight:700}
+    .cal .grid{display:grid;grid-template-columns:repeat(7,1fr)}
+    .day{min-height:120px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px;display:flex;flex-direction:column;gap:6px}
+    .day:nth-child(7n){border-right:none}
+    .date{font-weight:700;font-size:13px;opacity:.9}
+    .title{font-size:14px;line-height:1.2}
+    .subtitle{font-size:12px;color:var(--muted)}
+    .links{margin-top:auto;display:flex;flex-wrap:wrap;gap:6px}
+    .links a{font-size:12px;border:1px dashed var(--line);padding:2px 6px;border-radius:8px;text-decoration:none}
+
+    .empty{background:linear-gradient(180deg, color-mix(in oklab, var(--tint) 35%, transparent), transparent)}
+
+    .legend{margin-top:10px;font-size:12px}
+
+    @media (max-width:720px){
+      .day{min-height:96px}
+      .title{font-size:13px}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="brand">
+        <span class="dot" aria-hidden="true"></span>
+        <div>
+          <div>말씀따라 흐르는 샘물</div>
+          <div class="muted" id="ym-label">—</div>
+        </div>
+      </div>
+      <div class="controls">
+        <a id="prev" href="#" aria-label="이전 달">◀</a>
+        <a id="next" href="#" aria-label="다음 달">▶</a>
+        <button id="todayBtn">오늘로</button>
+      </div>
+    </header>
+
+    <section class="cal">
+      <div class="head">
+        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+      </div>
+      <div id="grid" class="grid" role="grid" aria-label="달력 그리드"></div>
+    </section>
+
+    <div class="legend muted">데이터 파일: <code>data/YYYY-MM.txt</code> · 포맷: <code>DD|제목|본문/부제(선택)|링크1|링크2...</code></div>
+  </div>
+
+<script>
+(function(){
+  const url = new URL(location.href);
+  // 허용: y/m 또는 year/month 둘 다 처리 (중복 시 y/m 우선)
+  const y = +(url.searchParams.get('y') || url.searchParams.get('year')) || new Date().getFullYear();
+  const m = +(url.searchParams.get('m') || url.searchParams.get('month')) || (new Date().getMonth()+1);
+  const lang = (url.searchParams.get('lang') || 'ko').toLowerCase();
+
+  const ymLabel = document.getElementById('ym-label');
+  ymLabel.textContent = `${y}년 ${String(m).padStart(2,'0')}월`;
+
+  // 이전/다음 달 링크 세팅 (중복 파라미터 방지: y/m만 사용)
+  function linkTo(y2, m2){
+    const u = new URL(location.href);
+    u.search = '';
+    u.searchParams.set('lang', lang);
+    u.searchParams.set('y', y2);
+    u.searchParams.set('m', m2);
+    return u.toString();
+  }
+  (function setupNav(){
+    const prevA = document.getElementById('prev');
+    const nextA = document.getElementById('next');
+    let yy=y, mm=m-1; if(mm<1){mm=12; yy=y-1}
+    prevA.href = linkTo(yy, mm);
+    yy=y; mm=m+1; if(mm>12){mm=1; yy=y+1}
+    nextA.href = linkTo(yy, mm);
+    document.getElementById('todayBtn').onclick = ()=>{ location.href = linkTo(new Date().getFullYear(), new Date().getMonth()+1); };
+  })();
+
+  // 달력 렌더
+  const grid = document.getElementById('grid');
+  function daysInMonth(yy, mm){ return new Date(yy, mm, 0).getDate(); }
+  function startWeekday(yy, mm){ return new Date(yy, mm-1, 1).getDay(); }
+
+  function cell(day, entry){
+    const div = document.createElement('div');
+    div.className = 'day';
+    if(day==null){ div.classList.add('empty'); div.setAttribute('aria-disabled','true'); return div; }
+
+    const d = document.createElement('div'); d.className='date'; d.textContent = String(day);
+    const t = document.createElement('div'); t.className='title'; t.textContent = entry?.title || '';
+    const s = document.createElement('div'); s.className='subtitle'; s.textContent = entry?.subtitle || '';
+    const links = document.createElement('div'); links.className='links';
+
+    if(entry?.links?.length){
+      entry.links.forEach((L,i)=>{
+        const a = document.createElement('a'); a.href=L; a.target='_blank'; a.rel='noopener'; a.textContent = i===0? '원문' : `링크${i+1}`;
+        links.appendChild(a);
+      });
+    }
+
+    div.appendChild(d);
+    if(t.textContent) div.appendChild(t);
+    if(s.textContent) div.appendChild(s);
+    if(links.children.length) div.appendChild(links);
+    return div;
+  }
+
+  async function loadData(yy, mm){
+    const file = `data/${yy}-${String(mm).padStart(2,'0')}.txt`;
+    try{
+      const res = await fetch(file, {cache:'no-store'});
+      if(!res.ok) throw new Error(res.status+': '+res.statusText);
+      const txt = await res.text();
+      return parseData(txt);
+    }catch(err){
+      console.warn('데이터 불러오기 실패:', err);
+      return {}; // 빈 데이터로 진행
+    }
+  }
+
+  function parseData(text){
+    // 라인 포맷: DD|제목|부제(선택)|링크1|링크2...
+    const map = {};
+    text.split(/\r?\n/).forEach(line=>{
+      const raw = line.trim();
+      if(!raw || raw.startsWith('#')) return;
+      const parts = raw.split('|').map(s=>s.trim());
+      const day = +parts[0];
+      if(!Number.isInteger(day)) return;
+      const title = parts[1]||'';
+      const subtitle = parts[2]||'';
+      const links = parts.slice(3).filter(Boolean);
+      map[day] = {title, subtitle, links};
+    });
+    return map;
+  }
+
+  (async function render(){
+    const total = daysInMonth(y,m);
+    const start = startWeekday(y,m);
+    const data = await loadData(y,m);
+
+    grid.innerHTML = '';
+    const cells = Math.ceil((start + total)/7)*7; // 완전한 주 단위
+    for(let i=0;i<cells;i++){
+      const idx=i; const day = (idx>=start && (idx-start)<total) ? (idx-start+1) : null;
+      grid.appendChild(cell(day, day? data[day] : null));
+    }
+  })();
+})();
+
+/* -------- 달력 호환 패치 (layout 불변, 로직만 보강) -------- */
+(function(){
+  // 1) URL 파라미터 정규화: y/m 우선, 없으면 year/month 사용
+  function getYM(){
+    const u = new URL(location.href);
+    const y = +(u.searchParams.get('y') || u.searchParams.get('year')) || new Date().getFullYear();
+    const m = +(u.searchParams.get('m') || u.searchParams.get('month')) || (new Date().getMonth()+1);
+    const lang = (u.searchParams.get('lang') || 'ko').toLowerCase();
+    return {y, m, lang};
+  }
+
+  // 2) 네가 쓰는 요소 id를 최대한 존중 + 자동 탐색
+  const els = {
+    ymLabel:  document.getElementById('ym-label')   || document.getElementById('ym') || document.querySelector('[data-ym]'),
+    grid:     document.getElementById('grid')       || document.getElementById('calendar-grid') || document.querySelector('[data-cal-grid]'),
+    prev:     document.getElementById('prev')       || document.getElementById('prevMonth') || document.querySelector('[data-cal-prev]'),
+    next:     document.getElementById('next')       || document.getElementById('nextMonth') || document.querySelector('[data-cal-next]'),
+    todayBtn: document.getElementById('todayBtn')   || document.querySelector('[data-cal-today]')
+  };
+
+  function linkTo(y, m, lang){
+    const u = new URL(location.href);
+    u.search = '';
+    u.searchParams.set('lang', lang);
+    u.searchParams.set('y', y);
+    u.searchParams.set('m', m);
+    return u.toString();
+  }
+
+  function daysInMonth(y, m){ return new Date(y, m, 0).getDate(); }
+  function startWeekday(y, m){ return new Date(y, m-1, 1).getDay(); }
+
+  // 3) 데이터 로더 (네 포맷 유지: DD|제목|부제(선택)|링크1|링크2…)
+  async function loadData(y, m){
+    const file = `data/${y}-${String(m).padStart(2,'0')}.txt`;
+    try{
+      const res = await fetch(file, {cache:'no-store'});
+      if(!res.ok) throw new Error(res.status);
+      const txt = await res.text();
+      const map = {};
+      txt.split(/\r?\n/).forEach(line=>{
+        const raw = line.trim();
+        if(!raw || raw.startsWith('#')) return;
+        const p = raw.split('|').map(s=>s.trim());
+        const d = +p[0]; if(!Number.isInteger(d)) return;
+        map[d] = { title:p[1]||'', subtitle:p[2]||'', links:p.slice(3).filter(Boolean) };
+      });
+      return map;
+    }catch(e){
+      console.warn('데이터 불러오기 실패:', e);
+      return {};
+    }
+  }
+
+  // 4) 렌더러 (기존 레이아웃 보존: grid 안에만 채움)
+  function renderGrid(container, y, m, data){
+    if(!container) return;
+    const total = daysInMonth(y,m);
+    const start = startWeekday(y,m);
+    const cells = Math.ceil((start + total)/7)*7;
+
+    // 기존 마크업을 쓰는 경우를 대비: 비워놓고 다시 채움
+    container.innerHTML = '';
+
+    for(let i=0;i<cells;i++){
+      const day = (i>=start && (i-start)<total) ? (i-start+1) : null;
+      const cell = document.createElement('div');
+      cell.className = 'day';
+
+      if(day===null){
+        cell.classList.add('empty');
+      }else{
+        const info = data[day];
+        const date = document.createElement('div'); date.className='date'; date.textContent = String(day);
+        cell.appendChild(date);
+
+        if(info && info.title){
+          const t = document.createElement('div'); t.className='title'; t.textContent = info.title; cell.appendChild(t);
+          if(info.subtitle){
+            const s = document.createElement('div'); s.className='subtitle'; s.textContent = info.subtitle; cell.appendChild(s);
+          }
+          if(info.links?.length){
+            const links = document.createElement('div'); links.className='links';
+            info.links.forEach((L,idx)=>{
+              const a = document.createElement('a'); a.href=L; a.target='_blank'; a.rel='noopener';
+              a.textContent = idx===0 ? '원문' : `링크${idx+1}`;
+              links.appendChild(a);
+            });
+            cell.appendChild(links);
+          }
+        }
+      }
+      container.appendChild(cell);
+    }
+  }
+
+  // 5) 초기화
+  (async function init(){
+    const {y, m, lang} = getYM();
+
+    if(els.ymLabel) els.ymLabel.textContent = `${y}년 ${String(m).padStart(2,'0')}월`;
+
+    // 네비게이션(있을 때만 바인딩)
+    if(els.prev){
+      let yy=y, mm=m-1; if(mm<1){mm=12; yy=y-1}
+      els.prev.setAttribute('href', linkTo(yy, mm, lang));
+    }
+    if(els.next){
+      let yy=y, mm=m+1; if(mm>12){mm=1; yy=y+1}
+      els.next.setAttribute('href', linkTo(yy, mm, lang));
+    }
+    if(els.todayBtn){
+      els.todayBtn.addEventListener('click', ()=>{
+        const now = new Date();
+        location.href = linkTo(now.getFullYear(), now.getMonth()+1, lang);
+      });
+    }
+
+    // 데이터 → 그리드
+    const data = await loadData(y,m);
+    renderGrid(els.grid, y, m, data);
+  })();
+})();  
+</script>
+</body>
+</html>
