@@ -227,6 +227,52 @@ a.cellbox:hover{ box-shadow:0 2px 10px rgba(0,0,0,.06); border-color:var(--accen
           box.className = 'cellbox';
         }
 
+// ... 반복문 안, 각 날짜 셀 생성 부분만 발췌 ...
+var cell = document.createElement('div');
+cell.className = 'cell' + (c.empty ? ' is-empty' : '');
+if(c.empty){ grid.appendChild(cell); continue; }
+
+var info = c.info;
+var box = (info && info.url) ? document.createElement('a') : document.createElement('div');
+box.className = 'cellbox';
+if(info && info.url){ box.href = info.url; box.target = '_blank'; box.rel = 'noopener'; }
+
+// 날짜 배지 (좌상단 고정)
+var badge = document.createElement('div');
+badge.className = 'dnum-badge';
+badge.textContent = c.day;
+box.appendChild(badge);
+
+// ✅ 중앙 영역(제목/부제/추가)
+var center = document.createElement('div');
+center.className = 'center';
+
+// 제목 (멀티라인, 중앙)
+var titleEl = document.createElement('div');
+titleEl.className = 'title-center';
+titleEl.textContent = (info && info.title) ? info.title : '';
+center.appendChild(titleEl);
+
+// 부제
+if(info && info.ref){
+  var r = document.createElement('div');
+  r.className = 'ref';
+  r.textContent = info.ref;
+  center.appendChild(r);
+}
+
+// 추가 개수
+if(info && info.extraCount > 0){
+  var mline = document.createElement('div');
+  mline.className = 'more';
+  mline.textContent = '+' + info.extraCount + ' 더 있음';
+  center.appendChild(mline);
+}
+
+box.appendChild(center);
+cell.appendChild(box);
+grid.appendChild(cell);
+    
         /* 날짜 배지 (좌상단 고정) */
         var badge = document.createElement('div');
         badge.className = 'dnum-badge';
