@@ -1,1 +1,207 @@
 
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>말씀따라 흐르는 샘물</title>
+<meta name="color-scheme" content="light dark" />
+
+<style>
+  :root{
+    --fg:#111827; --muted:#6b7280; --line:#d1d5db; --line-strong:#9ca3af;
+    --accent:#0ea5e9; --bg:#ffffff; --bgsoft:#f8fafc; --box:#ffffff; --box-line:#d1d5db; --box-tint:#f0f9ff;
+    /* 최초 렌더 직후 9/29 기준으로 재설정됨 (임시초깃값) */
+    --cell-h:112px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --fg:#e5e7eb; --muted:#9ca3af; --line:#2b2f36; --line-strong:#4b5563; --bg:#0b0f14; --bgsoft:#0f141b; --box:#0f141b; --box-line:#283041; --box-tint:#0a2032; }
+  }
+  *{box-sizing:border-box}
+  body{margin:0; color:var(--fg); background:var(--bg); font:14px/1.6 system-ui,Apple SD Gothic Neo,Segoe UI,Roboto,Apple Color Emoji,Noto Color Emoji,Arial,sans-serif;}
+  a{color:var(--accent); text-decoration:none}
+  .wrap{max-width:1080px;margin:0 auto;padding:16px;}
+
+  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 16px}
+  .brand{font-weight:800;letter-spacing:.02em}
+  .ym{display:flex;align-items:center;gap:8px}
+  .ym button{border:1px solid var(--line);background:var(--box);padding:6px 10px;border-radius:8px;cursor:pointer}
+  .ym .badge{padding:6px 10px;border-radius:999px;background:var(--box-tint);border:1px solid var(--box-line);font-weight:600}
+  .note{color:var(--muted);font-size:12px}
+
+  .cal{background:var(--box); border:1px solid var(--box-line); border-radius:14px; overflow:hidden}
+  .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--bgsoft)}
+  .cal .head > div{padding:10px 6px;text-align:center;font-weight:700;color:var(--muted)}
+
+  /* 7열 달력 그리드 */
+  #grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line-strong)}
+  #grid > div{
+    background:var(--box);
+    padding:8px;
+    min-height:var(--cell-h);
+    max-height:var(--cell-h);
+    overflow:hidden;
+    border-radius:8px;
+    word-break:break-word;
+  }
+
+  /* 날짜 숫자 */
+  #grid > div .date{font-weight:700; font-size:12px; opacity:.85; margin-bottom:4px}
+  /* 제목(3줄까지만) */
+  #grid > div .title{
+    display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3;
+    overflow:hidden;
+  }
+
+  /* 빈 칸도 동일 높이 유지 */
+  #grid > div.empty{color:transparent}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="brand">말씀따라 흐르는 샘물</div>
+    <div class="ym">
+      <button id="prevBtn" aria-label="이전 달">⬅︎</button>
+      <div class="badge" id="ymLabel">—</div>
+      <button id="nextBtn" aria-label="다음 달">➡︎</button>
+    </div>
+  </header>
+
+  <section class="cal" aria-label="달력">
+    <div class="head">
+      <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+    </div>
+    <div id="grid" role="grid" aria-label="달력 그리드"></div>
+  </section>
+
+  <p class="note">※ 칸 높이는 <strong>2025년 9월 29일</strong> 셀의 실제 높이를 기준으로 자동 맞춤(그 달에 29일 기준 셀이 없으면, 해당 달의 최대 높이로 균일화).</p>
+</div>
+
+<!-- 스크립트는 이 한 개만! -->
+<script>
+/* =========================
+   [A] 상태 & 파라미터 가드
+   ========================= */
+const url = new URL(location.href);
+const now = new Date();
+const guardYear = (v)=>{
+  const n = Number(v);
+  return Number.isInteger(n) && n>=1900 && n<=9999 ? n : now.getFullYear();
+};
+const guardMonth = (v)=>{ // 1-12 → 0-11
+  const n = Number(v);
+  return Number.isInteger(n) && n>=1 && n<=12 ? (n-1) : now.getMonth();
+};
+// y|year, m|month 모두 지원
+let state = {
+  year: guardYear(url.searchParams.get('y') ?? url.searchParams.get('year')),
+  month: guardMonth(url.searchParams.get('m') ?? url.searchParams.get('month')) // 0-based
+};
+const daysKo = ['일','월','화','수','목','금','토'];
+const ymLabel = document.getElementById('ymLabel');
+const grid = document.getElementById('grid');
+
+/* =========================
+   [B] 유틸
+   ========================= */
+function pad2(n){ return (n<10?'0':'')+n; }
+function lastDayOfMonth(y,m0){ return new Date(y, m0+1, 0).getDate(); }
+function startWeekday(y,m0){ return new Date(y, m0, 1).getDay(); }
+function normalizeYM(){
+  if(state.month<0){ state.year--; state.month=11; }
+  if(state.month>11){ state.year++; state.month=0; }
+}
+
+/* =========================
+   [C] 9/29 기준 칸 높이 잠금 (유틸 밑에!)
+   ========================= */
+function lockUniformCellHeightByDate(targetDay){
+  const cells = Array.from(document.querySelectorAll('#grid > div'));
+  if(!cells.length) return;
+
+  // 임시값(초기 CSS 변수) 읽기
+  let h = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell-h')) || 0;
+
+  // '29' 표시 셀 우선 탐색: .date 요소가 “29”인 셀
+  let ref = cells.find(c=>{
+    const d = c.querySelector('.date');
+    return d && d.textContent.trim() === String(targetDay);
+  });
+
+  // 기준 셀 없으면, 현재 달에서 가장 높은 칸을 사용
+  if(ref){
+    h = Math.round(ref.getBoundingClientRect().height);
+  }else{
+    h = Math.round(Math.max(...cells.map(c => c.getBoundingClientRect().height)));
+  }
+
+  // 전체 동일 고정
+  document.documentElement.style.setProperty('--cell-h', h + 'px');
+  cells.forEach(c=>{
+    c.style.minHeight = h + 'px';
+    c.style.maxHeight = h + 'px';
+  });
+}
+
+/* =========================
+   [D] 렌더러
+   ========================= */
+function renderCalendar(){
+  const y = state.year, m0 = state.month;
+  ymLabel.textContent = `${y}년 ${m0+1}월`;
+
+  const total = lastDayOfMonth(y,m0);
+  const start = startWeekday(y,m0);
+
+  // 여기서 “데이터”를 불러 제목/링크를 넣을 수 있어요.
+  // 예시: dataMap["YYYY-MM-DD"] = {title, href}
+  const dataMap = {}; // 비워둠(빈칸도 균일 높이 보장)
+
+  let html = '';
+  const cells = 42; // 6주(7x6)
+  for(let i=0;i<cells;i++){
+    const dayNum = i - start + 1; // 1..total
+    if(dayNum<1 || dayNum>total){
+      html += `<div class="empty" aria-hidden="true">&nbsp;</div>`;
+      continue;
+    }
+    const key = `${y}-${pad2(m0+1)}-${pad2(dayNum)}`;
+    const info = dataMap[key];
+    const title = info?.title || '';
+    const link  = info?.href  || '';
+
+    const body = title
+      ? (link ? `<a href="${link}" target="_blank" rel="noopener">${title}</a>` : title)
+      : '&nbsp;';
+
+    html += `
+      <div role="gridcell" data-day="${dayNum}">
+        <div class="date">${dayNum}</div>
+        <div class="title">${body}</div>
+      </div>
+    `;
+  }
+  grid.innerHTML = html;
+
+  // 레이아웃이 그려진 다음, 9/29 기준으로 높이 잠금
+  requestAnimationFrame(()=> lockUniformCellHeightByDate(29));
+}
+
+/* =========================
+   [E] 이벤트
+   ========================= */
+document.getElementById('prevBtn').addEventListener('click', ()=>{
+  state.month--; normalizeYM(); renderCalendar();
+});
+document.getElementById('nextBtn').addEventListener('click', ()=>{
+  state.month++; normalizeYM(); renderCalendar();
+});
+
+/* =========================
+   [F] 최초 렌더
+   ========================= */
+renderCalendar();
+</script>
+</body>
+</html>
