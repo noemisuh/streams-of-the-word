@@ -38,55 +38,71 @@
   .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--bgsoft);}
   .cal .head div{padding:10px 8px;text-align:center;font-weight:700;color:var(--muted);}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);}
-  .cell{
-    border-right:1px solid var(--line);border-bottom:1px solid var(--line);
-    padding:10px; display:flex; position:relative;
-  }
-  .grid .cell:nth-child(7n){border-right:none;}
-  .grid .cell.is-empty{background:linear-gradient(180deg, rgba(0,0,0,0.02) 0 0) top/100% 44px no-repeat;}
 
-  /* ✅ 셀 전체가 둥근 네모칸(클릭 가능) + 제목 중앙정렬 */
-  .cellbox{
-    position:relative;
-    display:flex; flex-direction:column; align-items:center; justify-content:center;
-    width:100%; min-height:130px;
-    padding:16px;
-    border:1px solid var(--line);
-    border-radius:14px;
-    background:rgba(14,165,233,0.08);
-    text-decoration:none; color:inherit;
-    transition:transform .05s ease, box-shadow .15s ease, border-color .15s ease, background .15s ease;
-  }
-  a.cellbox:hover{ box-shadow:0 2px 10px rgba(0,0,0,.06); border-color:var(--accent); background:rgba(14,165,233,0.12); }
-  a.cellbox:active{ transform:translateY(1px); }
+/* 셀 */
+.cell{
+  border-right:1px solid var(--line); border-bottom:1px solid var(--line);
+  padding:10px; position:relative;
+}
+.grid .cell:nth-child(7n){border-right:none;}
 
-  /* 날짜 뱃지: 좌상단, 제목과 분리 */
-  .dnum-badge{
-    position:absolute; left:10px; top:10px;
-    font-size:12px; color:var(--muted);
-    padding:2px 6px; border:1px solid var(--line); border-radius:8px;
-    background:var(--box);
-  }
+/* ✅ 셀 전체 둥근칸: 중앙 영역(center)이 남은 공간을 가득 채움 */
+.cellbox{
+  position:relative;
+  display:flex; flex-direction:column;
+  width:100%; min-height:140px;          /* 빈칸/있는칸 최소 높이 동일 */
+  padding:16px 14px 14px;
+  border:1px solid var(--line);
+  border-radius:14px;
+  background:rgba(14,165,233,0.10);
+  text-decoration:none; color:inherit;
+  transition:box-shadow .15s ease, border-color .15s ease, background .15s ease;
+}
+a.cellbox:hover{ box-shadow:0 2px 10px rgba(0,0,0,.06); border-color:var(--accent); background:rgba(14,165,233,0.14); }
 
-  /* 제목(중앙) */
-  .title-center{
-    max-width:100%;
-    font-size:15px; line-height:1.35; text-align:center;
-    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
-  }
+/* 날짜 배지: 좌상단 고정 (제목과 물리적 분리) */
+.dnum-badge{
+  position:absolute; left:10px; top:10px;
+  font-size:12px; color:var(--muted);
+  padding:2px 6px; border:1px solid var(--line); border-radius:8px;
+  background:var(--box);
+}
 
-  /* 본문표기와 추가개수: 제목 아래, 연한 톤 */
-  .ref{margin-top:6px;font-size:12px;color:var(--muted);
-       white-space:nowrap;overflow:hidden;text-overflow:ellipsis;text-align:center;}
-  .more{margin-top:2px;font-size:11px;color:var(--muted);text-align:center;}
+/* ✅ 중앙 영역: 남은 공간을 통째로 차지해 수직/수평 중앙 배치 */
+.center{
+  flex:1;                          /* 남은 공간 가득 */
+  display:flex; flex-direction:column;
+  align-items:center; justify-content:center; /* 수평/수직 중앙 */
+  text-align:center;
+  padding:8px 4px;                 /* 날짜 배지와 간격 확보 */
+}
 
-  @media (prefers-color-scheme: dark){
-    .cellbox{ background:rgba(56,189,248,0.12); }
-    .dnum-badge{ background:#0f1720; border-color:#334155; color:#9ca3af; }
-  }
-  @media (max-width:640px){
-    .cellbox{min-height:118px}
-  }
+/* ✅ 제목: 멀티라인(최대 3줄), 가운데 정렬, 말줄임 */
+.title-center{
+  max-width:100%;
+  font-size:16px; line-height:1.4;
+  white-space:normal;              /* 줄바꿈 허용 */
+  word-break:keep-all;             /* 한글 단어 자연스럽게 */
+  overflow:hidden;
+  display:-webkit-box;
+  -webkit-line-clamp:3;            /* 최대 3줄 */
+  -webkit-box-orient:vertical;
+  text-wrap:balance;               /* 줄 균형 (지원 브라우저에서) */
+  margin:0;                        /* 상단에 달라붙지 않게 center가 정렬 담당 */
+}
+
+/* 본문/추가 정보: 제목 아래, 연한 톤 */
+.ref{
+  margin-top:8px;
+  font-size:12px; color:var(--muted);
+  white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
+}
+.more{ font-size:11px; color:var(--muted); margin-top:4px; }
+
+@media (prefers-color-scheme: dark){
+  .cellbox{ background:rgba(56,189,248,0.12); }
+  .dnum-badge{ background:#0f1720; border-color:#334155; color:#9ca3af; }
+}
 </style>
 </head>
 <body>
