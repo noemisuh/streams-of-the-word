@@ -64,6 +64,57 @@
     .today{outline:2px solid var(--accent); outline-offset:-2px;}
     /* 상태배지 완전 제거: 요소도 만들지 않으므로 숨김 스타일 불필요 */
     @media (max-width:720px){ .day{min-height:96px} .titleCard .title a{font-size:var(--title-size-sm)} }
+
+/* === 균일 칸 높이: 9/29 기준 === */
+:root{
+  /* 초기 예비값(첫 렌더 전에 잠깐 쓰임). 필요시 숫자만 조절 */
+  --cell-h: 112px;
+}
+
+#grid .cell{
+  display:flex; flex-direction:column;
+  min-height:var(--cell-h);
+  max-height:var(--cell-h);
+  padding:8px;
+  overflow:hidden;                 /* 넘치는 내용은 숨김 */
+  border-radius:8px;
+}
+
+#grid .cell .date{
+  font-weight:700; font-size:12px; opacity:.85; margin-bottom:4px;
+}
+
+#grid .cell .title{
+  word-wrap:break-word;
+  white-space:normal;
+  display:-webkit-box;
+  -webkit-line-clamp:3;            /* 제목은 최대 3줄까지만 */
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}
+:root{ --cell-h:112px; }           /* 처음 잠깐 쓰는 임시값 */
+
+#grid > div{
+  min-height:var(--cell-h);
+  max-height:var(--cell-h);
+  padding:8px;
+  overflow:hidden;                 /* 넘치면 숨김 */
+  border-radius:8px;
+  word-break:break-word;
+}
+
+#grid > div a{
+  text-decoration:none;
+  word-break:break-word;
+}
+
+/* 제목이 너무 길 때 3줄까지만 보이게(선택) */
+#grid > div .title{
+  display:-webkit-box;
+  -webkit-line-clamp:3;
+  -webkit-box-orient:vertical;
+  overflow:hidden;
+}   
   </style>
 </head>
 <body>
