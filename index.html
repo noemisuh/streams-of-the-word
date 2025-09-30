@@ -217,10 +217,12 @@ nextA.addEventListener('click', function(e){
 /* === [연/월 링크 설정 + 강제 이동 이벤트] 끝 === */
     
     /* ===== 데이터 로딩 ===== */
-    var ym = y + '-' + String(m).padStart(2,'0') + '.txt';
-    var basePath = location.pathname.replace(/[^\/]*$/, '');
-    var candidates = [ basePath + 'data/' + ym, '/data/' + ym ];
-
+function makeUrl(nextY, nextM){
+  const u = new URL(window.location.href);
+  u.searchParams.set('y', String(nextY));
+  u.searchParams.set('m', String(nextM));
+  return u.toString();  // index 유무 그대로 유지
+}
     var dayMap = Object.create(null);
 
     function parseText(text){
@@ -248,11 +250,6 @@ nextA.addEventListener('click', function(e){
     }
     tryFetch(0);
 
-
-
-
-
-    
     /* ===== 렌더: URL 있으면 셀 전체를 <a class="cellbox">로 ===== */
     function render(){
       var grid = document.getElementById('grid'); grid.innerHTML='';
