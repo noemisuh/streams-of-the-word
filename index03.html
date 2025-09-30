@@ -5,56 +5,82 @@
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>말씀따라 흐르는 샘물</title>
 <meta name="color-scheme" content="light dark" />
-<!-- StreamsCal v1.0 (fixed template) -->
+<!-- StreamsCal v1.0-fixed (final template) -->
 <style>
   :root{
     --fg:#111827; --muted:#6b7280; --line:#d1d5db; --line-strong:#9ca3af;
-    --accent:#0ea5e9; --bg:#ffffff; --bgsoft:#f8fafc; --box:#ffffff; --box-line:#d1d5db; --box-tint:#f0f9ff;
-    --cell-h:112px; /* 최초 임시값, 렌더 후 9/29 기준으로 자동 재설정 */
+    --accent:#0ea5e9; --bg:#ffffff; --bgsoft:#f8fafc; --box:#ffffff; --box-line:#d1d5db; --box-tint:#eef6ff;
+    --head:#e5f3ff; --head-line:#cfe8ff;
+    --cell-h:112px; /* 렌더 후 9/29 기준으로 자동 재설정 */
   }
   @media (prefers-color-scheme: dark){
-    :root{ --fg:#e5e7eb; --muted:#9ca3af; --line:#2b2f36; --line-strong:#4b5563; --bg:#0b0f14; --bgsoft:#0f141b; --box:#0f141b; --box-line:#283041; --box-tint:#0a2032; }
+    :root{
+      --fg:#e5e7eb; --muted:#9ca3af; --line:#2b2f36; --line-strong:#4b5563;
+      --bg:#0b0f14; --bgsoft:#0f141b; --box:#0f141b; --box-line:#283041; --box-tint:#0c2133;
+      --head:#112233; --head-line:#18314e;
+    }
   }
   *{box-sizing:border-box}
-  body{margin:0;color:var(--fg);background:var(--bg);font:14px/1.6 system-ui,Segoe UI,Roboto,Apple SD Gothic Neo,Arial,sans-serif;}
+  body{margin:0;color:var(--fg);background:var(--bg);font:14px/1.6 system-ui,Apple SD Gothic Neo,Segoe UI,Roboto,Arial,sans-serif}
   a{color:var(--accent);text-decoration:none}
   .wrap{max-width:1080px;margin:0 auto;padding:16px}
-  header{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:8px 0 16px}
-  .brand{font-weight:800}
-  .ym{display:flex;align-items:center;gap:8px}
-  .ym button{border:1px solid var(--line);background:var(--box);padding:6px 10px;border-radius:8px;cursor:pointer}
-  .ym .badge{padding:6px 10px;border-radius:999px;background:var(--box-tint);border:1px solid var(--box-line);font-weight:600}
-  .note{color:var(--muted);font-size:12px}
+
+  /* 제목 */
+  h1{display:flex;align-items:center;gap:8px;margin:4px 0 10px;font-size:18px}
+  h1::before{content:"●";color:#1e90ff;font-size:12px}
+
+  /* 연/월 바 */
+  .ybar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin:6px 0 12px}
+  .yctrl{display:flex;align-items:center;gap:6px}
+  .ybtn{border:1px solid var(--line);background:var(--box);padding:4px 8px;border-radius:8px;cursor:pointer}
+  .ybadge{padding:6px 10px;border-radius:999px;background:var(--box-tint);border:1px solid var(--box-line);font-weight:700}
+  .mbar{display:flex;gap:6px;flex-wrap:wrap}
+  .mbar button{border:1px solid var(--line);background:var(--box);padding:4px 10px;border-radius:999px;cursor:pointer}
+  .mbar button.active{background:var(--accent);border-color:var(--accent);color:#fff}
+
+  /* 달력 박스 */
   .cal{background:var(--box);border:1px solid var(--box-line);border-radius:14px;overflow:hidden}
-  .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--bgsoft)}
+  .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--head-line);background:var(--head)}
   .cal .head > div{padding:10px 6px;text-align:center;font-weight:700;color:var(--muted)}
+
+  /* 그리드 */
   #grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--line-strong)}
-  #grid > div{background:var(--box);padding:8px;min-height:var(--cell-h);max-height:var(--cell-h);overflow:hidden;border-radius:8px;word-break:break-word}
+  #grid > div{
+    background:var(--box); padding:8px; min-height:var(--cell-h); max-height:var(--cell-h);
+    overflow:hidden; border-radius:8px; word-break:break-word;
+  }
   #grid > div .date{font-weight:700;font-size:12px;opacity:.85;margin-bottom:4px}
-  #grid > div .title{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:3;overflow:hidden}
+  #grid > div .title{
+    display:-webkit-box; -webkit-box-orient:vertical; -webkit-line-clamp:3;
+    overflow:hidden;
+  }
   #grid > div.empty{color:transparent}
-  footer{margin-top:8px;color:var(--muted);font-size:12px}
+
+  footer{margin-top:10px;color:var(--muted);font-size:12px}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="brand">말씀따라 흐르는 샘물</div>
-    <div class="ym">
-      <button id="prevBtn" aria-label="이전 달">⬅︎</button>
-      <div class="badge" id="ymLabel">—</div>
-      <button id="nextBtn" aria-label="다음 달">➡︎</button>
-    </div>
-  </header>
 
+  <h1>말씀따라 흐르는 샘물</h1>
+
+  <!-- 연/월 UI (초기 디자인: 연도 좌우화살표 + 1~12월 버튼) -->
+  <div class="ybar">
+    <div class="yctrl">
+      <button class="ybtn" id="prevY" aria-label="이전 해">◀</button>
+      <div class="ybadge" id="yBadge">—</div>
+      <button class="ybtn" id="nextY" aria-label="다음 해">▶</button>
+    </div>
+    <div class="mbar" id="mBar"></div>
+  </div>
+
+  <!-- 달력 -->
   <section class="cal" aria-label="달력">
     <div class="head"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
     <div id="grid" role="grid" aria-label="달력 그리드"></div>
   </section>
 
-  <footer>
-    StreamsCal v1.0 • 칸 높이: 2025-09-29 기준(없으면 해당 달 최대 높이)
-  </footer>
+  <footer>StreamsCal v1.0-fixed • 칸 높이: 2025-09-29 기준(없으면 해당 달 최대 높이)</footer>
 </div>
 
 <script>
@@ -62,98 +88,148 @@
 const url = new URL(location.href);
 const now = new Date();
 const guardYear  = v => { const n = +v; return Number.isInteger(n)&&n>=1900&&n<=9999 ? n : now.getFullYear(); };
-const guardMonth = v => { const n = +v; return Number.isInteger(n)&&n>=1&&n<=12   ? (n-1) : now.getMonth(); };
+const guardMonth = v => { const n = +v; return Number.isInteger(n)&&n>=1&&n<=12 ? (n-1) : now.getMonth(); };
+
 let state = {
-  year:  guardYear(url.searchParams.get('y')),
-  month: guardMonth(url.searchParams.get('m'))   // 0-based
+  year:  guardYear(url.searchParams.get('y') ?? url.searchParams.get('year')),
+  month: guardMonth(url.searchParams.get('m') ?? url.searchParams.get('month')) // 0-based
 };
-const ymLabel = document.getElementById('ymLabel');
-const grid    = document.getElementById('grid');
+
+const yBadge = document.getElementById('yBadge');
+const mBar   = document.getElementById('mBar');
+const grid   = document.getElementById('grid');
 
 /* ===== [B] 유틸 ===== */
 const pad2 = n => (n<10?'0':'')+n;
-const lastDayOfMonth = (y,m0) => new Date(y, m0+1, 0).getDate();
-const startWeekday   = (y,m0) => new Date(y, m0, 1).getDay();
-function normalizeYM(){ if(state.month<0){state.year--;state.month=11;} if(state.month>11){state.year++;state.month=0;} }
+const lastDayOfMonth = (y,m0)=> new Date(y, m0+1, 0).getDate();
+const startWeekday   = (y,m0)=> new Date(y, m0, 1).getDay();
+function normalizeYM(){
+  if(state.month<0){ state.year--; state.month=11; }
+  if(state.month>11){ state.year++; state.month=0; }
+}
+function setQuery(y, m0){
+  const q = new URL(location.href);
+  q.searchParams.set('y', y);
+  q.searchParams.set('m', m0+1);
+  history.replaceState(null, "", q.toString());
+}
 
 /* ===== [C] 균일 높이(9/29 기준) ===== */
 function lockUniformCellHeightByDate(targetDay){
   const cells = Array.from(document.querySelectorAll('#grid > div'));
   if(!cells.length) return;
+
   let h = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--cell-h')) || 0;
-  let ref = cells.find(c => { const d = c.querySelector('.date'); return d && d.textContent.trim() === String(targetDay); });
-  if(ref){ h = Math.round(ref.getBoundingClientRect().height); }
-  else   { h = Math.round(Math.max(...cells.map(c => c.getBoundingClientRect().height))); }
+  const ref = cells.find(c=>{
+    const d = c.querySelector('.date');
+    return d && d.textContent.trim() === String(targetDay);
+  });
+
+  h = ref
+    ? Math.round(ref.getBoundingClientRect().height)
+    : Math.round(Math.max(...cells.map(c => c.getBoundingClientRect().height)));
+
   document.documentElement.style.setProperty('--cell-h', h + 'px');
-  cells.forEach(c => { c.style.minHeight = h+'px'; c.style.maxHeight = h+'px'; });
+  cells.forEach(c=>{
+    c.style.minHeight = h + 'px';
+    c.style.maxHeight = h + 'px';
+  });
 }
 
 /* ===== [D] 외부 데이터 로더 (data/YYYY-MM.txt) ===== */
 async function loadMonthData(y, m0){
-  // index03.html이 어디에 있든, 그 위치 기준 상대경로로 data/를 찾음
-  const base = new URL('./', location.href);
-  const txtUrl = new URL(`data/${y}-${pad2(m0+1)}.txt`, base);
-  txtUrl.searchParams.set('v', Date.now()); // 캐시 무력화
+  // index.html 기준 ./data/ 경로
+  const base  = new URL("./", location.href);
+  const txt   = new URL(`data/${y}-${pad2(m0+1)}.txt`, base);
+  txt.searchParams.set("v", Date.now()); // 캐시 무력화
 
   try{
-    const res = await fetch(txtUrl.toString(), {cache:'no-store'});
+    const res = await fetch(txt.toString(), {cache:"no-store"});
     if(!res.ok) return {};
     const text = await res.text();
     const map = {};
     text.split(/\r?\n/).forEach(raw=>{
       const line = raw.trim();
-      if(!line || line.startsWith('#')) return;
-      const parts = line.split('|').map(s=>s.trim());
+      if(!line || line.startsWith("#")) return;
+      const parts = line.split("|").map(s=>s.trim());
       const day = parseInt(parts[0], 10);
       if(!Number.isInteger(day) || day<1 || day>31) return;
 
-      const title = parts[1] || '';
-      const last  = parts[parts.length-1] || '';
-      const href  = /^https?:\/\//i.test(last) ? last : '';
+      const title = parts[1] || "";
+      const last  = parts[parts.length-1] || "";
+      const href  = /^https?:\/\//i.test(last) ? last : "";
 
       const key = `${y}-${pad2(m0+1)}-${pad2(day)}`;
       map[key] = { title, href };
     });
     return map;
-  }catch(_){ return {}; }
+  }catch(_){
+    return {};
+  }
 }
 
-/* ===== [E] 렌더러 ===== */
+/* ===== [E] 월 버튼 만들기 (1~12) ===== */
+function renderMonthBar(){
+  mBar.innerHTML = "";
+  for(let i=0;i<12;i++){
+    const b = document.createElement("button");
+    b.textContent = (i+1)+"월";
+    if(i===state.month) b.classList.add("active");
+    b.addEventListener("click", async ()=>{
+      state.month = i;
+      setQuery(state.year, state.month);
+      await renderCalendar();
+    });
+    mBar.appendChild(b);
+  }
+}
+
+/* ===== [F] 렌더러 ===== */
 async function renderCalendar(){
   const y = state.year, m0 = state.month;
-  ymLabel.textContent = `${y}년 ${m0+1}월`;
+  yBadge.textContent = `${y}년`;
+  renderMonthBar();
 
   const total = lastDayOfMonth(y,m0);
   const start = startWeekday(y,m0);
   const dataMap = await loadMonthData(y, m0);
 
-  let html = '';
+  let html = "";
   const cells = 42; // 6주
   for(let i=0;i<cells;i++){
     const dayNum = i - start + 1;
     if(dayNum<1 || dayNum>total){ html += `<div class="empty">&nbsp;</div>`; continue; }
+
     const key   = `${y}-${pad2(m0+1)}-${pad2(dayNum)}`;
     const info  = dataMap[key];
-    const title = info?.title || '';
-    const link  = info?.href  || '';
+    const title = info?.title || "";
+    const link  = info?.href  || "";
 
-    const body = title ? (link ? `<a href="${link}" target="_blank" rel="noopener">${title}</a>` : title) : '&nbsp;';
-    html += `<div data-day="${dayNum}"><div class="date">${dayNum}</div><div class="title">${body}</div></div>`;
+    const body = title ? (link ? `<a href="${link}" target="_blank" rel="noopener">${title}</a>` : title) : "&nbsp;";
+
+    html += `
+      <div role="gridcell" data-day="${dayNum}">
+        <div class="date">${dayNum}</div>
+        <div class="title">${body}</div>
+      </div>
+    `;
   }
   grid.innerHTML = html;
 
+  // 9/29 기준으로 칸 높이 잠금(없으면 그 달 최대 높이)
   requestAnimationFrame(()=> lockUniformCellHeightByDate(29));
 }
 
-/* ===== [F] 이벤트 ===== */
-document.getElementById('prevBtn').addEventListener('click', async ()=>{
-  state.month--; normalizeYM(); await renderCalendar();
+/* ===== [G] 연도 버튼 ===== */
+document.getElementById("prevY").addEventListener("click", async ()=>{
+  state.year--; setQuery(state.year, state.month); await renderCalendar();
 });
-document.getElementById('nextBtn').addEventListener('click', async ()=>{
-  state.month++; normalizeYM(); await renderCalendar();
+document.getElementById("nextY").addEventListener("click", async ()=>{
+  state.year++; setQuery(state.year, state.month); await renderCalendar();
 });
 
-/* ===== [G] 최초 렌더 ===== */
+/* ===== [H] 최초 렌더 ===== */
+setQuery(state.year, state.month);
 renderCalendar();
 </script>
 </body>
