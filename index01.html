@@ -1,356 +1,256 @@
 <!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>말씀따라 흐르는 샘물 · 달력</title>
-  <meta name="color-scheme" content="light dark" />
-  <style>
-    :root{
-      --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --line-strong:#cbd5e1;
-      --bg:#ffffff; --bgsoft:#f8fafc; --box:#ffffff; --tint:#f0f9ff; --accent:#0ea5e9;
-    }
-    @media (prefers-color-scheme: dark){
-      :root{ --fg:#e5e7eb; --muted:#9ca3af; --line:#1f2937; --line-strong:#374151;
-             --bg:#0b0f14; --bgsoft:#0f1720; --box:#0b1220; --tint:#0b1a2a; --accent:#38bdf8; }
-    }
-    *{box-sizing:border-box}
-    body{margin:0;font-family:ui-sans-serif,system-ui,Segoe UI,Apple SD Gothic Neo,Noto Sans KR,Helvetica,Arial,sans-serif;color:var(--fg);background:var(--bgsoft)}
-    .wrap{max-width:1080px;margin:24px auto;padding:0 16px}
-
-    /* 연도/월 네비 - 요청한 스타일 */
-    .yearbar{display:flex;align-items:center;justify-content:center;gap:16px;margin-bottom:8px}
-    .yearbar a{appearance:none;border:1px solid var(--line);background:var(--box);color:var(--fg);
-      padding:6px 12px;border-radius:999px;text-decoration:none;font-weight:700}
-    .year{font-weight:900;letter-spacing:.02em}
-
-    .months{display:flex;flex-wrap:wrap;gap:8px;justify-content:center;margin-bottom:16px}
-    .months a{border:1px solid var(--line);background:var(--box);padding:6px 10px;border-radius:10px;text-decoration:none;color:var(--fg)}
-    .months a.active{outline:2px solid var(--accent)}
-
-    .cal{background:var(--box);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-    .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--tint)}
-    .cal .head div{padding:10px 8px;text-align:center;font-weight:700}
-    .cal .grid{display:grid;grid-template-columns:repeat(7,1fr)}
-
-    .day{min-height:120px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 10px 12px;display:flex;flex-direction:column;gap:8px;transition:background .15s ease}
-    .day:nth-child(7n){border-right:none}
-    .day:hover{background:color-mix(in oklab, var(--tint) 30%, transparent)}
-    .date{font-weight:800;font-size:13px;opacity:.95}
-    .date a{color:inherit;text-decoration:none;display:inline-block;padding:2px 6px;border:1px solid var(--line);border-radius:8px;background:color-mix(in oklab, var(--tint) 55%, transparent)}
-    .date a:hover{filter:brightness(0.96)}
-    .title a{font-size:14px;line-height:1.3;text-decoration:none;color:inherit;display:block;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical;font-weight:700}
-    .empty{background:linear-gradient(180deg, color-mix(in oklab, var(--tint) 35%, transparent), transparent)}
-    .titleCard{margin-top:2px;border:1px solid var(--line);background:color-mix(in oklab, var(--bg) 70%, var(--tint) 30%);border-radius:10px;padding:8px 10px;box-shadow:0 1px 0 color-mix(in oklab, var(--line) 80%, transparent)}
-    .titleCard:hover{filter:brightness(0.98)}
-    .today{outline:2px solid var(--accent); outline-offset:-2px; background:color-mix(in oklab, var(--tint) 45%, transparent)}
-
-    @media (max-width:720px){ .day{min-height:96px} .title a{font-size:13px} }
-  .brand{display:flex;align-items:center;gap:10px;margin:2em 0 10px}
-    .brand .dot{width:12px;height:12px;border-radius:999px;background:var(--accent);box-shadow:0 0 0 4px color-mix(in oklab, var(--accent) 20%, transparent)}
-    .title-site{margin:0;font-weight:900;letter-spacing:.02em}
-
-    .yearbar{margin-top:8px}
-
-    .day{min-height:120px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 10px 12px;display:flex;flex-direction:column;gap:8px;transition:background .15s ease}
-    .day:nth-child(7n){border-right:none}
-    .day:hover{background:color-mix(in oklab, var(--tint) 30%, transparent)}
-    .date{font-weight:800;font-size:13px;opacity:.95}
-    .title a{font-size:28px;line-height:1.25;text-decoration:none;color:inherit;display:block;overflow:hidden;text-overflow:ellipsis;-webkit-line-clamp:2; display:-webkit-box; -webkit-box-orient:vertical;font-weight:800}
-    .empty{background:linear-gradient(180deg, color-mix(in oklab, var(--tint) 35%, transparent), transparent)}
-    .today{outline:2px solid var(--accent); outline-offset:-2px; background:color-mix(in oklab, var(--tint) 45%, transparent)}
-
-    @media (max-width:720px){ .day{min-height:96px} .title a{font-size:22px} }
-    
-   <!-- 보정용 스타일: 크기·여백·톤 즉시 조정 -->
-<style id="tune">
-  /* === 원하는 느낌대로 숫자만 바꿔도 됩니다 === */
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>말씀따라 흐르는 샘물</title>
+<meta name="color-scheme" content="light dark" />
+<style>
   :root{
-    --title-size:18px;     /* 날짜 제목 글자 크기 (데스크탑) */
-    --title-size-sm:16px;  /* 제목 크기 (모바일)       */
-    --card-pad:10px;       /* 제목 박스 안쪽 여백       */
-    --card-radius:10px;    /* 제목 박스 둥글기          */
-    --card-bg:rgba(0,0,0,.03); /* 제목 박스 배경 톤   */
-    --card-border:#e5e7eb; /* 제목 박스 테두리 색       */
-    --date-chip-pad:2px 6px;  /* 날짜 칩 패딩          */
-    --cell-min:120px;      /* 각 칸 최소 높이           */
+    --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --line-strong:#cbd5e1;
+    --accent:#0ea5e9; --accent-weak:#e0f2fe; --bg:#ffffff; --bgsoft:#f8fafc; --box:#ffffff;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --fg:#e5e7eb; --muted:#9ca3af; --line:#26303a; --line-strong:#334155;
+      --accent:#38bdf8; --accent-weak:#0b2a3a; --bg:#0b0f14; --bgsoft:#0f1720; --box:#0f1720;
+    }
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0;background:var(--bg);color:var(--fg);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  }
+  /* 위 여백을 2칸 내려줌 */
+  .wrap{max-width:1080px;margin:0 auto;padding:56px 16px 24px;}
+
+  /* ===== 상단 ===== */
+  .top{display:grid;grid-template-rows:40px 36px 40px;row-gap:12px;}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.02em;font-size:18px;} /* 크기 축소 */
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);}
+  .yearbar{display:flex;justify-content:center;align-items:center;gap:16px;}
+  .yearbar a{text-decoration:none;padding:6px 10px;border-radius:10px;border:1px solid var(--line-strong);background:var(--box);color:var(--fg);}
+  .yearbar .yr{min-width:90px;text-align:center;font-weight:700;border:none;background:transparent;color:var(--fg);}
+  .monthbar{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;}
+  .monthbar a{text-decoration:none;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--fg);background:var(--box);}
+  .monthbar a.active{border-color:var(--accent);outline:2px solid var(--accent-weak);}
+
+  /* ===== 달력 ===== */
+  .cal{margin-top:18px;border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;background:var(--box);}
+  .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--bgsoft);}
+  .cal .head div{padding:10px 8px;text-align:center;font-weight:700;color:var(--muted);}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);}
+  .cell{
+    border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:10px; display:flex;
+  }
+  .grid .cell:nth-child(7n){border-right:none;}
+  .grid .cell.is-empty{background:linear-gradient(180deg, rgba(0,0,0,0.02) 0 0) top/100% 44px no-repeat;}
+
+  /* 셀 전체 둥근 네모칸 (URL 있으면 <a>, 없으면 <div>) */
+  .cellbox{
+    display:flex; flex-direction:column; gap:10px;
+    width:100%; min-height:130px;
+    padding:12px 14px;
+    border:1px solid var(--line);
+    border-radius:12px;
+    background:linear-gradient(180deg, rgba(0,0,0,0.03) 0 52px, transparent 52px);
+    text-decoration:none; color:inherit;
+    transition:transform .05s ease, box-shadow .15s ease, border-color .15s ease;
+  }
+  a.cellbox:hover{ box-shadow:0 2px 10px rgba(0,0,0,.06); border-color:var(--accent); }
+  a.cellbox:active{ transform:translateY(1px); }
+
+  .dnum{
+    font-size:12px;color:var(--muted);
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:12px; /* 날짜와 제목칸 간격 확 늘림 */
   }
 
-  /* 모바일(폭 720px 이하) 튜닝 */
-  @media (max-width:720px){
-    :root{ --title-size:var(--title-size-sm); --cell-min:96px; }
+  /* 제목칸: 가운데 정렬 + 남는 공간 가득 채우기 */
+  .slot-title{
+    display:flex; align-items:center; justify-content:center; /* 가운데 정렬 */
+    flex:1;                        /* 남는 공간을 가득 채움 → ‘전체칸에 채운 느낌’ */
+    padding:12px;                  /* 시원한 안쪽 여백 */
+    border-radius:10px;
+    background:rgba(14,165,233,0.10); /* 은은한 채움 */
+    border:1px solid var(--line);
+    font-size:15px; line-height:1.35; text-align:center;
+    white-space:nowrap; overflow:hidden; text-overflow:ellipsis;
   }
+  .slot-title.empty{ background:rgba(0,0,0,0.035); } /* 제목 없어도 칸 느낌 유지 */
+  .slot-title a{ color:inherit; text-decoration:none; }
+  .slot-title a:hover{ text-decoration:underline; }
 
-  /* 실제 적용 (기존 스타일을 부드럽게 덮어써요) */
-  .titleCard{
-    padding:var(--card-pad) !important;
-    border-radius:var(--card-radius) !important;
-    background:var(--card-bg) !important;
-    border:1px solid var(--card-border) !important;
-    box-shadow:0 1px 0 rgba(0,0,0,.05);
-    margin-top:4px; /* 제목 박스 위 여백 살짝 */
+  .ref{
+    font-size:12px;color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+    text-align:center; /* 제목과 조화롭게 가운데 */
   }
-  .titleCard .title a{
-    font-size:var(--title-size) !important;
-    line-height:1.3 !important;
-    font-weight:700 !important;
-    text-decoration:none !important;
-    display:block; overflow:hidden; text-overflow:ellipsis;
-  }
-  .day{ min-height:var(--cell-min) !important; gap:8px !important; }
-  .date a{
-    display:inline-block; padding:var(--date-chip-pad) !important;
-    border:1px solid var(--card-border) !important;
-    border-radius:8px !important; text-decoration:none !important; color:inherit !important;
-    background:rgba(0,0,0,.03);
-  }
-  .yearbar a, .months a{ border-radius:12px !important; padding:6px 10px !important; }
-<style id="hotfix-reset">
-  /* 상단 사이트 제목: 더 작게 + 위쪽 여백 넉넉 */
-  .title-site{
-    font-size: 20px !important;
-    font-weight: 900;
-    margin: 3.5em 0 14px !important; /* 위 여백 크게 */
-    letter-spacing: .02em;
-  }
+  .more{font-size:11px;color:var(--muted);text-align:center;}
 
-  /* 달력 셀 최소 높이 살짝만 */
-  .day{ min-height: 110px !important; gap:8px !important; }
-
-  /* 날짜칩 유지하되 낮은 대비 */
-  .date a{
-    display:inline-block;
-    padding:2px 6px !important;
-    border:1px solid #e5e7eb !important;
-    border-radius:8px !important;
-    background:rgba(0,0,0,.02) !important;
-    color:inherit !important; text-decoration:none !important;
+  @media (prefers-color-scheme: dark){
+    .cellbox{ background:linear-gradient(180deg, rgba(255,255,255,0.04) 0 52px, transparent 52px); }
+    .slot-title{ background:rgba(56,189,248,0.12); }
+    .slot-title.empty{ background:rgba(255,255,255,0.055); }
   }
-
-  /* 제목: 둥근 네모 박스 제거하고 평평하게 */
-  .titleCard{
-    background: transparent !important;
-    border: none !important;
-    box-shadow: none !important;
-    padding: 0 !important;
-    margin-top: 2px !important;
+  @media (max-width:640px){
+    .cellbox{min-height:118px}
   }
-  .titleCard .title a{
-    font-size: 16px !important;   /* 필요시 15~18px 조절 */
-    line-height: 1.35 !important;
-    font-weight: 700 !important;
-    text-decoration: none !important;
-    display:block; overflow:hidden; text-overflow:ellipsis;
-  }
-
-  /* 월 링크 바/연도 화살표 버튼 여백·모서리 적당히 */
-  .yearbar a, .months a{ border-radius:12px !important; padding:6px 10px !important; }    
-  </style>
+</style>
 </head>
 <body>
   <div class="wrap">
-    <header class="brand">
-      <span class="dot" aria-hidden="true"></span>
-      <h1 class="title-site">말씀따라 흐르는 샘물</h1>
-    </header>
-    <!-- 상단: 연도 좌우 화살표 + 현재 연도 라벨 -->
-    <nav class="yearbar" aria-label="연도 네비게이션">
-      <a id="yearPrev" href="#" aria-label="이전 연도">◀</a>
-      <div class="year" id="yearLabel">—</div>
-      <a id="yearNext" href="#" aria-label="다음 연도">▶</a>
-    </nav>
-    <!-- 1~12월 링크 -->
-    <div class="months" id="months"></div>
+    <section class="top" aria-label="상단">
+      <div class="brand"><span class="dot" aria-hidden="true"></span><span>말씀따라 흐르는 샘물</span></div>
+      <nav class="yearbar" aria-label="년도">
+        <a id="prevYear" href="#">◀</a>
+        <span class="yr" id="yearLabel">2025</span>
+        <a id="nextYear" href="#">▶</a>
+      </nav>
+      <nav class="monthbar" id="monthbar" aria-label="월"></nav>
+    </section>
 
-    <!-- 달력 -->
-    <section class="cal">
-      <div class="head">
-        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
-      </div>
+    <section class="cal" aria-label="달력">
+      <div class="head"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
       <div id="grid" class="grid" role="grid" aria-label="달력 그리드"></div>
     </section>
   </div>
 
- <script type="text/javascript">
-(function(){
-  // ===== URL =====
-  var u=new URL(location.href);
-  var Y=+(u.searchParams.get('y')||u.searchParams.get('year'))||(new Date()).getFullYear();
-  var M=+(u.searchParams.get('m')||u.searchParams.get('month'))||((new Date()).getMonth()+1);
-  var lang=(u.searchParams.get('lang')||'ko').toLowerCase();
-
-  // ===== 유틸 =====
-  function pad2(n){return(n<10?'0':'')+n}
-  function looksUrl(s){return !!s&&(s.indexOf('http://')===0||s.indexOf('https://')===0)}
-  function linkTo(y,m){
-    // 현재 경로 그대로 유지(404 방지). 쿼리만 교체.
-    var x=new URL(location.href);
-    x.search=''; x.searchParams.set('lang',lang); x.searchParams.set('y',y); x.searchParams.set('m',m);
-    return x.toString();
-  }
-  function daysInMonth(y,m){return new Date(y,m,0).getDate()}
-  function startWeekday(y,m){return new Date(y,m-1,1).getDay()}
-
-  // ===== 요소 확보/생성 =====
-  var yearbar=document.querySelector('.yearbar');
-  var yearLabel=document.getElementById('yearLabel');
-  var yearPrev=document.getElementById('yearPrev');
-  var yearNext=document.getElementById('yearNext');
-
-  var monthsBar=document.getElementById('months');
-  if(!monthsBar){
-    // 없으면 yearbar 다음에 생성
-    monthsBar=document.createElement('div');
-    monthsBar.id='months';
-    monthsBar.className='months';
-    if(yearbar && yearbar.parentNode){
-      yearbar.parentNode.insertBefore(monthsBar, yearbar.nextSibling);
-    }else{
-      document.body.insertBefore(monthsBar, document.body.firstChild);
-    }
-  }
-
-  // 달력 그리드 컨테이너
-  var grid=document.getElementById('grid')||
-            document.querySelector('[data-cal-grid]')||
-            document.querySelector('.calendar-grid')||
-            document.querySelector('.grid');
-
-  // 없으면 .cal 섹션을 찾고 그 안에 만들어줌
-  if(!grid){
-    var cal=document.querySelector('.cal');
-    if(!cal){
-      // 요일 헤더가 있다면 그 바로 아래에 생성
-      var head=document.querySelector('.cal .head')||document.querySelector('.head');
-      if(head && head.parentNode){
-        grid=document.createElement('div'); grid.id='grid'; grid.className='grid';
-        head.parentNode.appendChild(grid);
-      }
-    }else{
-      grid=document.createElement('div'); grid.id='grid'; grid.className='grid';
-      cal.appendChild(grid);
-    }
-  }
-
-  // ===== 상단 바 세팅 =====
-  if(yearLabel) yearLabel.textContent=Y+'년';  // '—' 방지
-  if(yearPrev)  yearPrev.href=linkTo(Y-1,M);
-  if(yearNext)  yearNext.href=linkTo(Y+1,M);
-
-  // 월 링크 바 세팅(없으면 자동 생성됨)
-  if(monthsBar){
-    monthsBar.innerHTML='';
-    for(var mm=1;mm<=12;mm++){
-      var a=document.createElement('a');
-      a.href=linkTo(Y,mm); a.textContent=mm+'월';
-      if(mm===M) a.classList.add('active');
-      monthsBar.appendChild(a);
-    }
-  }
-
-  // ===== 스타일 주입(최소) =====
+  <script>
   (function(){
-    var css=""
-    +".titleCard{margin-top:2px;border:1px solid #e5e7eb;background:rgba(0,0,0,.03);border-radius:10px;padding:8px 10px;box-shadow:0 1px 0 rgba(0,0,0,.05)}"
-    +".titleCard .title a{font-size:18px;line-height:1.3;text-decoration:none;color:inherit;display:block;overflow:hidden;text-overflow:ellipsis}"
-    +"@media (max-width:720px){.titleCard .title a{font-size:16px}}"
-    +".date a{color:inherit;text-decoration:none;display:inline-block;padding:2px 6px;border:1px solid #e5e7eb;border-radius:8px;background:rgba(0,0,0,.03)}";
-    var s=document.createElement('style'); s.textContent=css; document.head.appendChild(s);
-  })();
-
-  // ===== 숫자 그리드 강제 생성 =====
-  function ensureGrid(){
-    if(!grid) return;
-    // 이미 날짜 셀 있으면 스킵
-    if(grid.querySelector('.day')) return;
-
-    var total=daysInMonth(Y,M), start=startWeekday(Y,M);
-    grid.innerHTML='';
-    var cells=Math.ceil((start+total)/7)*7;
-    var today=new Date(), isThis=(today.getFullYear()===Y)&&((today.getMonth()+1)===M);
-
-    for(var i=0;i<cells;i++){
-      var day=(i>=start&&(i-start)<total)?(i-start+1):null;
-      var cell=document.createElement('div'); cell.className='day';
-      if(day===null){ cell.classList.add('empty'); }
-      else{
-        var d=document.createElement('div'); d.className='date'; d.textContent=String(day); cell.appendChild(d);
-        if(isThis && day===today.getDate()) cell.classList.add('today');
-      }
-      grid.appendChild(cell);
+    /* URL 파라미터 견고 파서 */
+    var qs = location.search || "";
+    function pickLastNum(keyFallback, fallback){
+      var u = new URL(location.href);
+      var v = u.searchParams.get(keyFallback);
+      var re = new RegExp("(?:\\b"+keyFallback+"\\b|\\byear\\b|\\bmonth\\b|\\bm\\b|\\by\\b)\\s*=\\s*(\\d{1,4})","gi");
+      var mm, last=null;
+      while((mm = re.exec(qs))){ last = mm[1]; }
+      var cand = (last!==null)? last : v;
+      var n = parseInt(cand,10);
+      return (isFinite(n)? n : fallback);
     }
-  }
+    var today = new Date();
+    var y = pickLastNum('y', today.getFullYear());
+    if(!(y>=1900 && y<=9999)) y = today.getFullYear();
+    var m = pickLastNum('m', (today.getMonth()+1));
+    if(!(m>=1 && m<=12)) m = today.getMonth()+1;
 
-  // ===== 데이터 로드 =====
-  function loadData(y,m,done){
-    var fname=y+"-"+pad2(m)+".txt";
-    // 현재 문서 경로를 유지하면서 상대경로 우선
-    var candidates=[
-      "data/"+fname,
-      "../data/"+fname,
-      "../../data/"+fname
-    ];
-    var parts=location.pathname.split('/').filter(function(v){return !!v});
-    if(parts.length>=1) candidates.push("/"+parts[0]+"/data/"+fname);
+    function makeUrl(nextY, nextM){
+      var u = new URL(location.href);
+      u.searchParams.set('y', String(nextY));
+      u.searchParams.set('m', String(nextM));
+      return u.pathname + u.search;
+    }
 
-    var i=0;
-    function next(){
-      if(i>=candidates.length){ done({}); return; }
-      var url=candidates[i++];
-      fetch(url,{cache:"no-store"}).then(function(res){
-        if(!res.ok) throw new Error("HTTP "+res.status);
-        return res.text();
-      }).then(function(txt){
-        // 줄 나누기(\r 제거)
-        var arr=txt.split("\n"), lines=[], k, line;
-        for(k=0;k<arr.length;k++){ line=arr[k]; if(line && line.length && line.charCodeAt(line.length-1)===13) line=line.slice(0,-1); lines.push(line); }
-        var map={}, j, L, p, t;
-        for(j=0;j<lines.length;j++){
-          L=(lines[j]||"").trim(); if(!L||L.charAt(0)==="#") continue;
-          p=L.split("|"); for(t=0;t<p.length;t++){ p[t]=(p[t]||"").trim(); }
-          var day=parseInt(p[0],10); if(!day||isNaN(day)) continue;
-          var title=p[1]||"";
-          var first=""; if(p.length>=4){ first=p[3]; } else if(p.length>=3 && looksUrl(p[2])){ first=p[2]; }
-          var second=p[4]||"";
-          var href=looksUrl(first)?first:(looksUrl(second)?second:"");
-          map[day]={title:title, href:href};
+    document.getElementById('yearLabel').textContent = y;
+    document.getElementById('prevYear').href = makeUrl(y-1, m);
+    document.getElementById('nextYear').href = makeUrl(y+1, m);
+
+    (function buildMonthbar(){
+      var box = document.getElementById('monthbar'); box.innerHTML='';
+      for(var i=1;i<=12;i++){
+        var a = document.createElement('a');
+        a.textContent = i+'월';
+        a.href = makeUrl(y, i);
+        if(i===m) a.className='active';
+        box.appendChild(a);
+      }
+    })();
+
+    /* 데이터 로딩 */
+    var ym = y + '-' + String(m).padStart(2,'0') + '.txt';
+    var basePath = location.pathname.replace(/[^\/]*$/, '');
+    var candidates = [ basePath + 'data/' + ym, '/data/' + ym ];
+
+    var dayMap = Object.create(null);
+
+    function parseText(text){
+      if(text && text.charCodeAt && text.charCodeAt(0)===0xFEFF) text = text.slice(1);
+      var lines = (text||'').replace(/\r\n?/g,'\n').split('\n');
+      for(var i=0;i<lines.length;i++){
+        var line = lines[i].trim(); if(!line) continue;
+        var parts = line.split('|'); if(parts.length<2) continue;
+        var dd = parseInt((parts[0]||'').trim(),10);
+        if(!(dd>=1 && dd<=31)) continue;
+        var title = (parts[1]||'').trim();
+        var ref   = (parts[2]||'').trim();
+        var url   = (parts[3]||'').trim();
+        if(!dayMap[dd]) dayMap[dd] = {title:title, ref:ref, url:url, extraCount:0};
+        else dayMap[dd].extraCount++;
+      }
+    }
+
+    function tryFetch(i){
+      if(i>=candidates.length){ render(); return; }
+      fetch(candidates[i], {cache:'no-store'})
+        .then(function(r){ return r.ok ? r.text() : ''; })
+        .then(function(t){ if(t && t.trim().length){ parseText(t); render(); } else tryFetch(i+1); })
+        .catch(function(){ tryFetch(i+1); });
+    }
+    tryFetch(0);
+
+    /* 렌더: URL 있으면 셀 전체를 <a class="cellbox">로 */
+    function render(){
+      var grid = document.getElementById('grid'); grid.innerHTML='';
+      var first = new Date(y, m-1, 1);
+      var start = first.getDay();
+      var days = new Date(y, m, 0).getDate();
+
+      var cells = [];
+      for(var i=0;i<start;i++) cells.push({empty:true});
+      for(var d=1; d<=days; d++) cells.push({empty:false, day:d, info:dayMap[d]});
+      while(cells.length%7!==0) cells.push({empty:true});
+
+      for(var k=0;k<cells.length;k++){
+        var c = cells[k];
+        var cell = document.createElement('div');
+        cell.className = 'cell' + (c.empty?' is-empty':'');
+        if(c.empty){ grid.appendChild(cell); continue; }
+
+        var info = c.info;
+        var box;
+        if(info && info.url){
+          box = document.createElement('a');
+          box.href = info.url; box.target = '_blank'; box.rel='noopener';
+          box.className = 'cellbox';
+        }else{
+          box = document.createElement('div');
+          box.className = 'cellbox';
         }
-        done(map);
-      }).catch(function(){ next(); });
-    }
-    next();
-  }
 
-  // ===== 제목/링크 꽂기 =====
-  function fill(map){
-    if(!grid) return;
-    var cells=grid.querySelectorAll('.day');
-    for(var i=0;i<cells.length;i++){
-      var cell=cells[i]; if(cell.classList.contains('empty')) continue;
-      var dateEl=cell.querySelector('.date'); if(!dateEl) continue;
-      var dd=parseInt(String(dateEl.textContent||'').trim(),10); if(!dd||!map[dd]) continue;
-      var info=map[dd];
+        /* 날짜 */
+        var dline = document.createElement('div'); dline.className='dnum';
+        dline.innerHTML = '<span>'+c.day+'</span>';
+        box.appendChild(dline);
 
-      // 날짜도 링크
-      if(info.href && !dateEl.querySelector('a')){
-        var da=document.createElement('a'); da.href=info.href; da.target='_blank'; da.rel='noopener';
-        da.textContent=String(dd); dateEl.textContent=''; dateEl.appendChild(da);
+        /* 제목칸: 가운데 + 공간 가득 */
+        var titleEl = document.createElement('div');
+        titleEl.className = 'slot-title';
+        if(info && info.title){
+          titleEl.textContent = info.title;
+        }else{
+          titleEl.classList.add('empty');
+          titleEl.textContent = '';
+        }
+        box.appendChild(titleEl);
+
+        /* 본문/추가 갯수 */
+        if(info && info.ref){
+          var r = document.createElement('div'); r.className='ref';
+          r.textContent = info.ref; box.appendChild(r);
+        }
+        if(info && info.extraCount>0){
+          var mline = document.createElement('div'); mline.className='more';
+          mline.textContent = '+'+ info.extraCount +' 더 있음'; box.appendChild(mline);
+        }
+
+        cell.appendChild(box);
+        grid.appendChild(cell);
       }
-      // 제목 카드
-      if(info.title){
-        var box=cell.querySelector('.titleCard'); if(!box){ box=document.createElement('div'); box.className='titleCard'; cell.appendChild(box); }
-        var tDiv=box.querySelector('.title'); if(!tDiv){ tDiv=document.createElement('div'); tDiv.className='title'; box.appendChild(tDiv); }
-        tDiv.innerHTML='';
-        if(info.href){ var a=document.createElement('a'); a.href=info.href; a.target='_blank'; a.rel='noopener'; a.textContent=info.title; tDiv.appendChild(a); }
-        else { tDiv.textContent=info.title; }
-      }
     }
-  }
-
-  // ===== 실행 =====
-  ensureGrid();           // 숫자 칸부터 강제 생성
-  loadData(Y,M,function(map){ try{ fill(map||{}); }catch(e){} }); // 제목/링크 채우기
-})();
-</script>
+  })();
+  </script>
 </body>
 </html>
