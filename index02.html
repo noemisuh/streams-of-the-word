@@ -41,7 +41,7 @@
     .date{font-weight:800;font-size:13px;opacity:.95}
     .date a{color:inherit;text-decoration:none;display:inline-block;padding:2px 6px;border:1px solid var(--line);border-radius:8px;background:rgba(0,0,0,.02)}
 
-    /* 제목: 둥근 박스(titleCard) 스타일 */
+    /* 제목: 둥근 박스(titleCard) */
     .titleCard{
       margin-top: 4px;
       padding: 10px 12px;
@@ -62,17 +62,13 @@
 
     .empty{background:linear-gradient(180deg, color-mix(in oklab, var(--accent) 8%, transparent), transparent)}
     .today{outline:2px solid var(--accent); outline-offset:-2px;}
-    #cal-status{position:sticky;top:0;z-index:9999;margin:0 16px 8px;padding:8px 12px;font:13px/1.2 ui-sans-serif,system-ui;border-radius:8px}
+    /* 상태배지 완전 제거: 요소도 만들지 않으므로 숨김 스타일 불필요 */
     @media (max-width:720px){ .day{min-height:96px} .titleCard .title a{font-size:var(--title-size-sm)} }
-
-  /* ...기존 스타일... */
-  #cal-status{ display:none !important; }
   </style>
 </head>
 <body>
   <noscript>이 페이지는 자바스크립트가 필요합니다.</noscript>
   <div class="wrap">
-    <div id="cal-status" aria-live="polite" hidden></div>
     <header class="brand">
       <span class="dot" aria-hidden="true"></span>
       <h1 class="title-site">말씀따라 흐르는 샘물</h1>
@@ -93,53 +89,55 @@
 
   <!-- 스크립트는 이 한 개만! (정규식/async 없음) -->
   <script type="text/javascript">
-// ===== URL (가드 포함) =====
-var u = new URL(location.href);
+  (function(){
+    // ===== URL (가드 포함) =====
+    var u = new URL(location.href);
 
-// year 가드 (연도 숫자 아니면 올해로)
-var rawY = u.searchParams.get('y') || u.searchParams.get('year');
-var Y = parseInt(rawY, 10);
-if (!Number.isFinite(Y)) { Y = (new Date()).getFullYear(); }
+    // year 가드 (숫자 아니면 올해)
+    var rawY = u.searchParams.get('y') || u.searchParams.get('year');
+    var Y = parseInt(rawY, 10);
+    if (!Number.isFinite(Y)) { Y = (new Date()).getFullYear(); }
 
-// month 가드 (1~12 아니면 현재 월로)
-var rawM = u.searchParams.get('m') || u.searchParams.get('month');
-var M = parseInt(rawM, 10);
-if (!(M >= 1 && M <= 12)) { M = (new Date()).getMonth() + 1; }
+    // month 가드 (1~12 아니면 현재 월)
+    var rawM = u.searchParams.get('m') || u.searchParams.get('month');
+    var M = parseInt(rawM, 10);
+    if (!(M >= 1 && M <= 12)) { M = (new Date()).getMonth() + 1; }
 
-// 언어
-var lang = (u.searchParams.get('lang') || 'ko').toLowerCase();
+    // 언어
+    var lang = (u.searchParams.get('lang') || 'ko').toLowerCase();
 
     // ===== 요소 =====
-    var statusEl=document.getElementById('cal-status');
-    var grid=document.getElementById('grid');
-    var yearLabel=document.getElementById('yearLabel');
-    var yearPrev=document.getElementById('yearPrev');
-    var yearNext=document.getElementById('yearNext');
-    var monthsBar=document.getElementById('months');
+    var grid      = document.getElementById('grid');
+    var yearLabel = document.getElementById('yearLabel');
+    var yearPrev  = document.getElementById('yearPrev');
+    var yearNext  = document.getElementById('yearNext');
+    var monthsBar = document.getElementById('months');
 
     // ===== 유틸 =====
-    function pad2(n){return(n<10?'0':'')+n}
+    function pad2(n){ return (n<10?'0':'')+n; }
     function looksUrl(s){ if(!s) return false; s=String(s); return s.indexOf('http://')===0 || s.indexOf('https://')===0; }
-    function linkTo(y,m){ var x=new URL(location.href); x.search=''; x.searchParams.set('lang',lang); x.searchParams.set('y',y); x.searchParams.set('m',m); return x.toString(); }
-    function daysInMonth(y,m){ return new Date(y,m,0).getDate(); }
-    function startWeekday(y,m){ return new Date(y,m-1,1).getDay(); }
-    function showStatus(text, ok){
-      if(!statusEl) return;
-      statusEl.hidden=false; statusEl.textContent=text;
-      statusEl.style.background= ok? '#ecfdf5':'#fef2f2';
-      statusEl.style.color= ok? '#065f46':'#991b1b';
-      statusEl.style.border = ok? '1px solid #a7f3d0':'1px solid #fecaca';
-      statusEl.style.borderLeft = ok? '6px solid #10b981':'6px solid #ef4444';
+
+    // 항상 index02.html로 이동(연/월 네비 고정)
+    function linkTo(y,m){
+      return location.origin + '/streams-of-the-word/index02.html'
+           + '?lang=' + encodeURIComponent(lang)
+           + '&y='   + encodeURIComponent(y)
+           + '&m='   + encodeURIComponent(m);
     }
 
+    function daysInMonth(y,m){ return new Date(y,m,0).getDate(); }
+    function startWeekday(y,m){ return new Date(y,m-1,1).getDay(); }
+
     // ===== 상단 바 =====
-    if(yearLabel) yearLabel.textContent=Y+'년';
-    if(yearPrev)  yearPrev.href=linkTo(Y-1,M);
-    if(yearNext)  yearNext.href=linkTo(Y+1,M);
+    if(yearLabel) yearLabel.textContent = Y+'년';
+    if(yearPrev)  yearPrev.href = linkTo(Y-1, M);
+    if(yearNext)  yearNext.href = linkTo(Y+1, M);
     if(monthsBar){
       monthsBar.innerHTML='';
       for(var mm=1; mm<=12; mm++){
-        var a=document.createElement('a'); a.href=linkTo(Y,mm); a.textContent=mm+'월';
+        var a=document.createElement('a');
+        a.href = linkTo(Y, mm);
+        a.textContent = mm+'월';
         if(mm===M) a.classList.add('active');
         monthsBar.appendChild(a);
       }
@@ -166,22 +164,28 @@ var lang = (u.searchParams.get('lang') || 'ko').toLowerCase();
     // ===== 데이터 로드 (저장소 베이스 고정) =====
     function loadData(y,m,done){
       var fname=y+"-"+pad2(m)+".txt";
-      var repoBase="/streams-of-the-word/"; // 저장소명이 다르면 여기만 바꾸세요
+      var repoBase="/streams-of-the-word/"; // 저장소명이 다르면 여기만 수정
       var candidates=[
         repoBase+"data/"+fname, // 최우선 절대경로
         "data/"+fname,
         "../data/"+fname,
         "../../data/"+fname
       ];
-      var tried=[], i=0;
+      var i=0;
       function next(){
-        if(i>=candidates.length){ showStatus("데이터 파일을 찾지 못했습니다: "+tried.join(" → "), false); done({}); return; }
-        var url=candidates[i++]; tried.push(url);
-        fetch(url,{cache:"no-store"}).then(function(res){ if(!res.ok) throw new Error("HTTP "+res.status); return res.text(); })
-        .then(function(txt){
+        if(i>=candidates.length){ done({}); return; }
+        var url=candidates[i++];
+        fetch(url,{cache:"no-store"}).then(function(res){
+          if(!res.ok) throw new Error("HTTP "+res.status);
+          return res.text();
+        }).then(function(txt){
           // 줄 분리(정규식 없이 CR 제거)
           var arr=txt.split("\n"), lines=[], k, line;
-          for(k=0;k<arr.length;k++){ line=arr[k]; if(line && line.length && line.charCodeAt(line.length-1)===13) line=line.slice(0,-1); lines.push(line); }
+          for(k=0;k<arr.length;k++){
+            line=arr[k];
+            if(line && line.length && line.charCodeAt(line.length-1)===13) line=line.slice(0,-1);
+            lines.push(line);
+          }
           // 파싱
           var map={}, j, raw, p, t;
           for(j=0;j<lines.length;j++){
@@ -189,72 +193,71 @@ var lang = (u.searchParams.get('lang') || 'ko').toLowerCase();
             p=raw.split("|"); for(t=0;t<p.length;t++){ p[t]=(p[t]||"").trim(); }
             var day=parseInt(p[0],10); if(!day||isNaN(day)) continue;
             var title=p[1]||"";
-            // 링크 우선: p[3](링크1=티스토리) → p[2]가 URL이면 그걸로 → p[4](네이버)
+            // 링크 우선: p[3](티스토리) → p[2]가 URL이면 그걸로 → p[4](네이버)
             var first=""; if(p.length>=4){ first=p[3]; } else if(p.length>=3 && looksUrl(p[2])){ first=p[2]; }
             var second=p[4]||"";
             var href=looksUrl(first)?first:(looksUrl(second)?second:"");
             map[day]={title:title, href:href};
           }
-          showStatus("데이터 OK: "+url, true);
           done(map);
         }).catch(function(){ next(); });
       }
       next();
     }
 
-    // ===== 제목/링크 채우기 (titleCard 박스 포함) =====
-function fill(map){
-  var cells = grid.querySelectorAll('.day');
-  var wantEmptyCards = (M === 10); // 10월은 빈 박스도 표시
+    // ===== 제목/링크 채우기 (10월: 전 날짜에 빈 박스 생성) =====
+    function fill(map){
+      var cells = grid.querySelectorAll('.day');
+      var wantEmptyCards = (M === 10); // 10월은 빈 박스도 표시
 
-  for (var i=0; i<cells.length; i++){
-    var cell = cells[i];
-    if (cell.classList.contains('empty')) continue;
+      for (var i=0; i<cells.length; i++){
+        var cell = cells[i];
+        if (cell.classList.contains('empty')) continue;
 
-    var dateEl = cell.querySelector('.date');
-    if (!dateEl) continue;
+        var dateEl = cell.querySelector('.date');
+        if (!dateEl) continue;
 
-    var dd = parseInt(String(dateEl.textContent||'').trim(), 10);
-    var info = map[dd]; // 있을 수도, 없을 수도
+        var dd = parseInt(String(dateEl.textContent||'').trim(), 10);
+        var info = map[dd]; // 있을 수도, 없을 수도
 
-    // 날짜 숫자에도 링크 (데이터가 있을 때)
-    if (info && info.href && !dateEl.querySelector('a')){
-      var da = document.createElement('a');
-      da.href = info.href; da.target = '_blank'; da.rel = 'noopener';
-      da.textContent = String(dd);
-      dateEl.textContent = '';
-      dateEl.appendChild(da);
-    }
-
-    // 제목 박스 처리
-    if (wantEmptyCards || (info && info.title)){
-      var box = cell.querySelector('.titleCard');
-      if (!box){
-        box = document.createElement('div');
-        box.className = 'titleCard';
-        cell.appendChild(box);
-      } else {
-        box.innerHTML = ''; // 초기화
-      }
-
-      // 데이터가 있을 때만 제목/링크 채움
-      if (info && info.title){
-        var tDiv = document.createElement('div');
-        tDiv.className = 'title';
-        if (info.href){
-          var a = document.createElement('a');
-          a.href = info.href; a.target = '_blank'; a.rel = 'noopener';
-          a.textContent = info.title;
-          tDiv.appendChild(a);
-        } else {
-          tDiv.textContent = info.title;
+        // 날짜 숫자에도 링크 (데이터가 있을 때)
+        if (info && info.href && !dateEl.querySelector('a')){
+          var da = document.createElement('a');
+          da.href = info.href; da.target = '_blank'; da.rel = 'noopener';
+          da.textContent = String(dd);
+          dateEl.textContent = '';
+          dateEl.appendChild(da);
         }
-        box.appendChild(tDiv);
+
+        // 제목 박스 처리
+        if (wantEmptyCards || (info && info.title)){
+          var box = cell.querySelector('.titleCard');
+          if (!box){
+            box = document.createElement('div');
+            box.className = 'titleCard';
+            cell.appendChild(box);
+          } else {
+            box.innerHTML = '';
+          }
+
+          // 데이터가 있을 때만 제목/링크 채움
+          if (info && info.title){
+            var tDiv = document.createElement('div');
+            tDiv.className = 'title';
+            if (info.href){
+              var a = document.createElement('a');
+              a.href = info.href; a.target = '_blank'; a.rel = 'noopener';
+              a.textContent = info.title;
+              tDiv.appendChild(a);
+            } else {
+              tDiv.textContent = info.title;
+            }
+            box.appendChild(tDiv);
+          }
+          // 데이터가 없으면 빈 박스 그대로 둠
+        }
       }
-      // 데이터가 없으면 빈 박스 그대로 두기 (시각적 정렬용)
     }
-  }
-}
 
     // 실행
     loadData(Y,M,function(map){ try{ fill(map||{}); }catch(e){} });
