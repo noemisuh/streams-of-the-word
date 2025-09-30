@@ -17,11 +17,13 @@
     }
   }
   *{box-sizing:border-box}
-  body{margin:0;background:var(--bg);color:var(--fg);
-    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;}
+  body{
+    margin:0;background:var(--bg);color:var(--fg);
+    font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  }
   .wrap{max-width:1080px;margin:0 auto;padding:24px 16px;}
 
-  /* 상단 */
+  /* ===== 상단 ===== */
   .top{display:grid;grid-template-rows:48px 40px 40px;row-gap:12px;}
   .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.02em;font-size:22px;}
   .brand .dot{width:12px;height:12px;border-radius:50%;background:var(--accent);}
@@ -32,22 +34,64 @@
   .monthbar a{text-decoration:none;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--fg);background:var(--box);}
   .monthbar a.active{border-color:var(--accent);outline:2px solid var(--accent-weak);}
 
-  /* 달력 */
+  /* ===== 달력 ===== */
   .cal{margin-top:18px;border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;background:var(--box);}
   .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--bgsoft);}
   .cal .head div{padding:10px 8px;text-align:center;font-weight:700;color:var(--muted);}
   .grid{display:grid;grid-template-columns:repeat(7,1fr);}
-  .cell{min-height:110px;border-right:1px solid var(--line);border-bottom:1px solid var(--line);
-    padding:8px 8px 10px;display:flex;flex-direction:column;gap:4px;}
+  .cell{
+    min-height:128px;
+    border-right:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:10px 10px 12px;display:flex;flex-direction:column;gap:6px;
+    background:linear-gradient(180deg, rgba(0,0,0,0.03) 0 0) top/100% 44px no-repeat; /* 상단 은은한 음영 */
+  }
   .grid .cell:nth-child(7n){border-right:none;}
-  .grid .cell.is-empty{background:linear-gradient(180deg, transparent 0 70%, rgba(0,0,0,.02) 70% 100%);}
-  .dnum{font-size:12px;color:var(--muted);display:flex;justify-content:space-between;align-items:center;}
-  .title{font-size:14px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .title a{color:inherit;text-decoration:none;}
-  .title a:hover{text-decoration:underline;}
-  .ref{font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .grid .cell.is-empty{
+    background:linear-gradient(180deg, rgba(0,0,0,0.02) 0 0) top/100% 44px no-repeat;
+  }
+  .dnum{
+    font-size:12px;color:var(--muted);
+    display:flex;justify-content:space-between;align-items:center;
+    margin-bottom:6px; /* 날짜와 제목칸 간격 */
+  }
+
+  /* 제목칸(항상 보임) */
+  .slot-title{
+    display:flex;align-items:center;
+    min-height:2.2em; /* 제목칸 높이 통일 */
+    padding:6px 8px;border-radius:10px;
+    background:rgba(14,165,233,0.08); /* 은은한 파랑 톤 */
+    border:1px solid var(--line);
+    font-size:14px;line-height:1.25;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
+  .slot-title a{color:inherit;text-decoration:none;}
+  .slot-title a:hover{text-decoration:underline;}
+
+  /* 제목이 없는 날도 칸이 보이도록 */
+  .slot-title.empty{
+    background:rgba(0,0,0,0.03);
+    border-color:var(--line);
+  }
+
+  .ref{
+    font-size:12px;color:var(--muted);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
+  }
   .more{font-size:11px;color:var(--muted);}
-  @media (max-width:640px){.cell{min-height:90px}.title{font-size:13px}}
+
+  @media (prefers-color-scheme: dark){
+    .cell{
+      background:linear-gradient(180deg, rgba(255,255,255,0.04) 0 0) top/100% 44px no-repeat;
+    }
+    .grid .cell.is-empty{
+      background:linear-gradient(180deg, rgba(255,255,255,0.03) 0 0) top/100% 44px no-repeat;
+    }
+    .slot-title{background:rgba(56,189,248,0.10);}
+    .slot-title.empty{background:rgba(255,255,255,0.05);}
+  }
+  @media (max-width:640px){
+    .cell{min-height:110px}
+  }
 </style>
 </head>
 <body>
@@ -68,17 +112,16 @@
     </section>
   </div>
 
-  <!-- 스크립트 하나로 끝 (정규식/async 없음) -->
+  <!-- 스크립트 하나로 완료 (정규식/async 없음) -->
   <script>
   (function(){
-    // ========= URL 파라미터 견고 파서 =========
-    // 쿼리 문자열 어지러워도 마지막으로 보이는 숫자 y/m을 정확히 잡아냄.
+    /* ===== URL 파라미터 견고 파서 =====
+       - 쿼리가 섞여 있어도 마지막 y/m 숫자를 정확히 사용
+       - 기존 파라미터(lang, v 등) 보존하여 링크 생성 */
     var qs = location.search || "";
     function pickLastNum(keyFallback, fallback){
-      // 1) 표준 파라미터 우선
       var u = new URL(location.href);
       var v = u.searchParams.get(keyFallback);
-      // 2) 전체 쿼리에서 key 형태(y=, year= 등)가 여러 번 등장하면 "마지막 숫자"를 사용
       var re = new RegExp("(?:\\b"+keyFallback+"\\b|\\byear\\b|\\bmonth\\b|\\bm\\b|\\by\\b)\\s*=\\s*(\\d{1,4})","gi");
       var m, last=null;
       while((m = re.exec(qs))){ last = m[1]; }
@@ -86,28 +129,23 @@
       var n = parseInt(cand,10);
       return (isFinite(n)? n : fallback);
     }
-
     var today = new Date();
     var y = pickLastNum('y', today.getFullYear());
     if(!(y>=1900 && y<=9999)) y = today.getFullYear();
     var m = pickLastNum('m', (today.getMonth()+1));
     if(!(m>=1 && m<=12)) m = today.getMonth()+1;
 
-    // ========= 기존 파라미터 보존한 링크 만들기 =========
     function makeUrl(nextY, nextM){
       var u = new URL(location.href);
-      // 기존 쿼리 유지하되, y/m은 교체
       u.searchParams.set('y', String(nextY));
       u.searchParams.set('m', String(nextM));
       return u.pathname.split('/').pop() + u.search;
     }
 
-    // 상단 표시
     document.getElementById('yearLabel').textContent = y;
     document.getElementById('prevYear').href = makeUrl(y-1, m);
     document.getElementById('nextYear').href = makeUrl(y+1, m);
 
-    // 월바
     (function buildMonthbar(){
       var box = document.getElementById('monthbar'); box.innerHTML='';
       for(var i=1;i<=12;i++){
@@ -119,19 +157,16 @@
       }
     })();
 
-    // ========= 데이터 로딩 (경로 자동 판별 + BOM/개행 안전) =========
+    /* ===== 데이터 로딩 (경로 자동 판별 + BOM/개행 안전) ===== */
     var ym = y + '-' + String(m).padStart(2,'0') + '.txt';
-
-    // 현재 파일이 있는 디렉터리 기준, 그리고 루트 기준 두 군데 다 시도
     var basePath = location.pathname.replace(/[^\/]*$/, '');
     var candidates = [ basePath + 'data/' + ym, '/data/' + ym ];
 
     var dayMap = Object.create(null);
 
     function parseText(text){
-      // UTF-8 BOM 제거
-      if(text.charCodeAt(0)===0xFEFF) text = text.slice(1);
-      var lines = text.replace(/\r\n?/g,'\n').split('\n');
+      if(text.charCodeAt(0)===0xFEFF) text = text.slice(1);      // BOM 제거
+      var lines = text.replace(/\r\n?/g,'\n').split('\n');       // 개행 통일
       for(var i=0;i<lines.length;i++){
         var line = lines[i].trim();
         if(!line) continue;
@@ -154,10 +189,9 @@
         .then(function(t){ if(t.trim().length){ parseText(t); render(); } else tryFetch(i+1); })
         .catch(function(){ tryFetch(i+1); });
     }
-
     tryFetch(0);
 
-    // ========= 렌더 =========
+    /* ===== 렌더 ===== */
     function render(){
       var grid = document.getElementById('grid'); grid.innerHTML='';
       var first = new Date(y, m-1, 1);
@@ -175,32 +209,42 @@
         el.className = 'cell' + (c.empty?' is-empty':'');
         if(c.empty){ grid.appendChild(el); continue; }
 
+        // 날짜
         var dline = document.createElement('div'); dline.className='dnum';
         dline.innerHTML = '<span>'+c.day+'</span>';
         el.appendChild(dline);
 
-        if(c.info){
-          var t = document.createElement('div'); t.className='title';
+        // 제목칸 (항상 표시, 빈 날도 slot 유지)
+        var titleEl = document.createElement('div');
+        titleEl.className = 'slot-title';
+        if(c.info && c.info.title){
           if(c.info.url){
-            var a=document.createElement('a'); a.href=c.info.url; a.target='_blank'; a.rel='noopener';
-            a.textContent=c.info.title||'(제목)';
-            t.appendChild(a);
+            var a = document.createElement('a');
+            a.href = c.info.url; a.target = '_blank'; a.rel = 'noopener';
+            a.textContent = c.info.title;
+            titleEl.appendChild(a);
           }else{
-            t.textContent=c.info.title||'(제목)';
-          }
-          el.appendChild(t);
-
-          if(c.info.ref){
-            var r=document.createElement('div'); r.className='ref'; r.textContent=c.info.ref; el.appendChild(r);
-          }
-          if(c.info.extraCount>0){
-            var mline=document.createElement('div'); mline.className='more';
-            mline.textContent='+'+c.info.extraCount+' 더 있음'; el.appendChild(mline);
+            titleEl.textContent = c.info.title;
           }
         }else{
-          var t0=document.createElement('div'); t0.className='title'; t0.textContent='';
-          el.appendChild(t0);
+          titleEl.classList.add('empty'); // 빈 제목칸도 보이게
+          titleEl.textContent = '';
         }
+        el.appendChild(titleEl);
+
+        // 본문 표기
+        if(c.info && c.info.ref){
+          var r = document.createElement('div'); r.className='ref';
+          r.textContent = c.info.ref; el.appendChild(r);
+        }
+
+        // 같은 날 추가 항목 개수
+        if(c.info && c.info.extraCount>0){
+          var mline = document.createElement('div'); mline.className='more';
+          mline.textContent = '+'+ c.info.extraCount +' 더 있음';
+          el.appendChild(mline);
+        }
+
         grid.appendChild(el);
       }
     }
