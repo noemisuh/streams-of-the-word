@@ -128,6 +128,8 @@ index_html = """<!doctype html>
     var nu = new URL(location.href);
     nu.searchParams.set('y', String(y2));
     nu.searchParams.set('m', String(m2));
+    var currLang = (u.searchParams.get('lang') || 'ko').toLowerCase();
+    nu.searchParams.set('lang', currLang); 
     nu.searchParams.set('v', Date.now()); // 캐시버스터
     location.href = nu.toString();
   }
@@ -174,6 +176,39 @@ index_html = """<!doctype html>
     }
   }
 
+<!-- [ADD ONLY] 플랫폼 감지 + 링크 매핑 -->
+  var PLATFORM = (u.searchParams.get('target') || '').toLowerCase();
+  if(!PLATFORM){
+    var host = location.hostname;
+    if(host.indexOf('naver.com') > -1) PLATFORM = 'naver';
+    else if(host.indexOf('tistory.com') > -1) PLATFORM = 'tistory';
+    else PLATFORM = 'web';
+  }
+
+  var linkMap = Object.create(null);
+  function loadLinkMap(){
+    return fetch('data/links-map.txt?v=' + Date.now(), {cache:'no-store'})
+      .then(function(r){ return r.ok ? r.text() : ''; })
+      .then(function(t){
+        if(!t) return;
+        if(t.charCodeAt && t.charCodeAt(0)===0xFEFF) t = t.slice(1);
+        t.replace(/\r\n?/g,'\n').split('\n').forEach(function(line){
+          line = (line||'').trim();
+          if(!line || line[0]==='#') return;
+          var p = line.split('|').map(function(s){return s.trim();});
+          if(p.length < 2) return;
+          linkMap[p[0]] = p[1];
+        });
+      })
+      .catch(function(){});
+  }
+
+  function getHref(original){
+    if(!original) return '';
+    if(PLATFORM === 'naver' && linkMap[original]) return linkMap[original];
+    return original;
+  }
+  
   // --- 렌더 ---
   function render(){
     var grid = document.getElementById('grid'); if(!grid) return;
@@ -195,8 +230,9 @@ index_html = """<!doctype html>
 
       var info = c.info;
       var box = (info && info.href) ? document.createElement('a') : document.createElement('div');
-      box.className = 'cellbox';
-      if(info && info.href){ box.href = info.href; box.target = '_blank'; box.rel='noopener'; }
+      box.className = 'cellbox';  
+      var finalHref = info ? getHref(info.href) : '';
+      if(finalHref){ box.href = finalHref; box.target = '_blank'; box.rel='noopener'; }
 
       var badge = document.createElement('div'); badge.className = 'dnum-badge'; badge.textContent = c.d; box.appendChild(badge);
 
@@ -247,7 +283,7 @@ index_html = """<!doctype html>
       render();
     });
   }
-  load();
+  loadLinkMap().then(function(){ load(); });
 })();
 </script>
 </body>
