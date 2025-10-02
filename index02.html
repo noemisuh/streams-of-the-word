@@ -1,240 +1,240 @@
-<!doctype html>
+# Create a final single-file index.html (data untouched) matching the user's template but functional.
+index_html = """<!doctype html>
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>말씀따라 흐르는 샘물</title>
-<meta name="color-scheme" content="light dark" />
+<meta name="color-scheme" content="light dark">
 <style>
-  :root{ --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --line-strong:#cbd5e1;
-         --accent:#0ea5e9; --bg:#ffffff; --box:#ffffff; --bgsoft:#f8fafc; }
+  :root {
+    --fg:#111827; --muted:#6b7280; --line:#d1d5db; --line-strong:#9ca3af;
+    --accent:#0b68d0; --bg:#ffffff; --bgsoft:#f8fafc; --box:#ffffff; --box-line:#d1d5db; --box-tint:#f0f9ff;
+  }
   @media (prefers-color-scheme: dark){
-    :root{ --fg:#e5e7eb; --muted:#9ca3af; --line:#334155; --line-strong:#475569;
-           --accent:#38bdf8; --bg:#0b0f14; --box:#0f1720; --bgsoft:#0f1720; }
+    :root { --fg:#e5e7eb; --muted:#9ca3af; --line:#2b2f36; --line-strong:#4b5563; --bg:#0b0f14; --bgsoft:#0e141b; --box:#0b0f14; --box-line:#2b2f36; --box-tint:#0f172a; --accent:#7bb2ff; }
   }
-  *{box-sizing:border-box}
-  body{
-    margin:0;background:var(--bg);color:var(--fg);
-    font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
-  }
-  .wrap{max-width:1080px;margin:0 auto;padding:56px 16px 24px;}
-  .top{display:grid;grid-template-rows:40px 36px 40px;row-gap:12px;}
-  .brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.02em;font-size:18px;}
-  .brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent);}
-  .yearbar{display:flex;justify-content:center;align-items:center;gap:16px;}
-  .yearbar a{text-decoration:none;padding:6px 10px;border-radius:10px;border:1px solid var(--line-strong);background:var(--box);color:var(--fg);}
-  .yearbar .yr{min-width:90px;text-align:center;font-weight:700;border:none;background:transparent;color:var(--fg);}
-  .monthbar{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px;}
-  .monthbar a{text-decoration:none;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--fg);background:var(--box);}
-  .monthbar a.active{border-color:var(--accent);outline:2px solid rgba(56,189,248,.25);}
-  .cal{margin-top:18px;border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;background:var(--box);}
-  .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--bgsoft);}
-  .cal .head div{padding:10px 8px;text-align:center;font-weight:700;color:var(--muted);}
-  .grid{display:grid;grid-template-columns:repeat(7,1fr);}
-  .cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px;position:relative;}
-  .grid .cell:nth-child(7n){border-right:none;}
-  .cellbox{
-    position:relative; display:flex; flex-direction:column;
-    width:100%; min-height:140px; padding:28px 16px 16px;
-    border:1px solid var(--line); border-radius:14px; background:rgba(14,165,233,0.10);
-    text-decoration:none; color:inherit; transition:box-shadow .15s ease, border-color .15s ease, background .15s ease;
-  }
-  a.cellbox:hover{ box-shadow:0 2px 10px rgba(0,0,0,.06); border-color:var(--accent); background:rgba(14,165,233,0.14); }
-  .dnum-badge{
-    position:absolute; left:10px; top:10px; z-index:3;
-    font-size:12px; color:var(--muted); padding:2px 6px; border:1px solid var(--line); border-radius:8px; background:var(--box);
-  }
-  .center{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:6px 4px; }
-  .title-center{
-    max-width:100%; font-size:16px; line-height:1.4; white-space:normal; word-break:keep-all; overflow:hidden;
-    display:-webkit-box; -webkit-line-clamp:3; -webkit-box-orient:vertical; text-wrap:balance; margin:0;
-  }
-  .ref{margin-top:8px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .more{font-size:11px;color:var(--muted);margin-top:4px;}
-  @media (prefers-color-scheme: dark){
-    .cellbox{ background:rgba(56,189,248,0.12); }
-    .dnum-badge{ background:#0f1720; border-color:#334155; color:#9ca3af; }
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans KR,Malgun Gothic,sans-serif}
+  main{max-width:1080px;margin:24px auto;padding:0 16px}
+  h1{font-size:28px;line-height:1.15;margin:0 0 8px 0;font-weight:800}
+  .status{font-size:12px;color:var(--muted);display:none;margin-top:4px}
+  /* year bar */
+  #yearbar{display:flex;align-items:center;gap:12px;margin:8px 0 12px 0}
+  #yearLabel{font-weight:700}
+  #yearbar button{border:1px solid var(--line);background:var(--box);border-radius:8px;padding:4px 8px;cursor:pointer}
+  #yearbar button:active{transform:translateY(1px)}
+  .langhint{margin-left:auto;font-size:13px;color:var(--muted)}
+  /* month bar */
+  #monthbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px}
+  #monthbar a{padding:6px 10px;border:1px solid var(--line);border-radius:999px;text-decoration:none;color:var(--fg);background:var(--box)}
+  #monthbar a.active{background:var(--accent);color:#fff;border-color:var(--accent)}
+  /* calendar grid */
+  .cal-head{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px;font-weight:700}
+  .grid{display:grid;grid-template-rows:repeat(6,1fr);gap:6px}
+  .row{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;min-height:96px}
+  .cell{border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--box)}
+  .d{font-size:12px;color:var(--muted);margin-bottom:4px}
+  .t{font-size:14px;line-height:1.4;word-break:break-word}
+  .t.muted{color:var(--muted)}
+  .ref{font-size:12px;color:var(--muted)}
+  a.t{color:var(--accent);text-decoration:none}
+  a.t:hover{text-decoration:underline}
+  /* small screen */
+  @media (max-width:640px){
+    .row{min-height:84px}
+    .t{font-size:13px}
   }
 </style>
 </head>
 <body>
-  <div class="wrap">
-    <section class="top" aria-label="상단">
-      <div class="brand"><span class="dot" aria-hidden="true"></span><span>말씀따라 흐르는 샘물</span></div>
-      <nav class="yearbar" aria-label="년도">
-        <a id="prevYear" href="#" onclick="goYear(-1);return false;">◀</a>
-        <span class="yr" id="yearLabel">0000</span>
-        <a id="nextYear" href="#" onclick="goYear(1);return false;">▶</a>
-      </nav>
-      <nav class="monthbar" id="monthbar" aria-label="월"></nav>
-    </section>
-    <section class="cal" aria-label="달력">
-      <div class="head"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
+  <main>
+    <!-- 상단 제목 (기존 틀 텍스트 흐름과 동일한 순서로 구성) -->
+    <header>
+      <h1>말씀따라 흐르는 샘물</h1>
+      <div id="cal-status" class="status"></div>
+    </header>
+
+    <!-- 연도 네비게이션: ◀ 2025 ▶ -->
+    <nav id="yearbar" aria-label="연도 이동">
+      <button id="prevYear" type="button" aria-label="이전 연도">◀</button>
+      <strong id="yearLabel">2025</strong>
+      <button id="nextYear" type="button" aria-label="다음 연도">▶</button>
+      <span class="langhint">언어: 한국어</span>
+    </nav>
+
+    <!-- 1월 ~ 12월 링크 -->
+    <nav id="monthbar" aria-label="월 이동"></nav>
+
+    <!-- 요일 헤더: 일 월 화 수 목 금 토 -->
+    <section class="cal">
+      <div class="cal-head">
+        <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
+      </div>
       <div id="grid" class="grid" role="grid" aria-label="달력 그리드"></div>
     </section>
-  </div>
+  </main>
 
-<script>
-(function(){
-  /* ===== URL 파라미터 ===== */
-  var qs = location.search || "";
-  function pickLastNum(keyFallback, fallback){
-    var u = new URL(location.href);
-    var v = u.searchParams.get(keyFallback);
-    var re = new RegExp("(?:\\b"+keyFallback+"\\b|\\byear\\b|\\bmonth\\b|\\bm\\b|\\by\\b)\\s*=\\s*(\\d{1,4})","gi");
-    var mm, last=null; while((mm = re.exec(qs))){ last = mm[1]; }
-    var cand = (last!==null)? last : v; var n = parseInt(cand,10);
-    return (isFinite(n)? n : fallback);
-  }
-  var today = new Date();
-  var y = pickLastNum('y', today.getFullYear());
-  if(!(y>=1900 && y<=9999)) y = today.getFullYear();
-  var m = pickLastNum('m', (today.getMonth()+1));
-  if(!(m>=1 && m<=12)) m = today.getMonth()+1;
+  <script>
+  (()=> {
+    // ===== 유틸 =====
+    const u = new URL(location.href);
+    const get = (k, d="") => (u.searchParams.get(k)||d).trim();
+    const pad2 = n => String(n).padStart(2,"0");
+    const now = new Date();
 
-  /* ===== 이동 함수 ===== */
-  window.goYear = function(delta){
-    var u = new URL(window.location.href);
-    var cy = parseInt(u.searchParams.get('y')||y,10) || new Date().getFullYear();
-    var cm = parseInt(u.searchParams.get('m')||m,10) || (new Date().getMonth()+1);
-    u.searchParams.set('y', String(cy + delta));
-    u.searchParams.set('m', String(cm));
-    window.location.href = u.toString();
-  };
+    // ===== 파라미터 파싱 (가드) =====
+    const lang = "ko"; // 한글 고정(다국어는 별도 인스턴스에서 처리)
+    const year = (get("y", String(now.getFullYear())).match(/^\\d{4}$/) || [String(now.getFullYear())])[0];
+    const mRaw = get("m", String(now.getMonth()+1));
+    const month = (mRaw.match(/^\\d{1,2}$/) ? pad2(mRaw) : pad2(now.getMonth()+1));
 
-  /* ===== 상단 표시/월바 ===== */
-  document.getElementById('yearLabel').textContent = y;
-  (function buildMonthbar(){
-    var box = document.getElementById('monthbar'); box.innerHTML='';
-    for(var i=1;i<=12;i++){
-      var u = new URL(window.location.href);
-      u.searchParams.set('y', String(y));
-      u.searchParams.set('m', String(i));
-      var a = document.createElement('a');
-      a.textContent = i+'월'; a.href = u.toString();
-      if(i===m) a.className='active';
-      a.onclick = function(e){ e.preventDefault(); window.location.href = this.href; };
-      box.appendChild(a);
+    // ===== 상태 표시 =====
+    const status = document.getElementById("cal-status");
+    const setStatus = (msg)=>{ if(status){ status.textContent = msg; status.style.display = "block"; } };
+    const hideStatus = ()=>{ if(status){ status.style.display = "none"; } };
+
+    // ===== 상단 연/월 UI 구성 =====
+    const yearLabel = document.getElementById("yearLabel");
+    const prevYear = document.getElementById("prevYear");
+    const nextYear = document.getElementById("nextYear");
+    const monthbar = document.getElementById("monthbar");
+
+    function go(y, m){
+      const v = Date.now();
+      const q = `?lang=${lang}&y=${y}&m=${m}&v=${v}`; // 캐시 버스터
+      location.search = q;
     }
+    function buildYearAndMonthUI(){
+      yearLabel.textContent = `${year}`;
+
+      prevYear.onclick = ()=> go(String(parseInt(year,10)-1), month);
+      nextYear.onclick = ()=> go(String(parseInt(year,10)+1), month);
+
+      monthbar.innerHTML = "";
+      for(let i=1;i<=12;i++){
+        const mm = pad2(i);
+        const a = document.createElement("a");
+        a.href = "javascript:void(0)";
+        a.textContent = `${i}월`;
+        a.className = (mm===month) ? "active" : "";
+        a.onclick = ()=> go(year, mm);
+        monthbar.appendChild(a);
+      }
+    }
+
+    // ===== 데이터 경로 후보 (두 가지 전략 순차 시도) =====
+    // 1) 공통: data/2025-10.txt
+    // 2) 언어별: data/2025-10.ko.txt
+    const base = `data/${year}-${month}`;
+    const candidates = [
+      `${base}.txt`,
+      `${base}.${lang}.txt`
+    ];
+
+    // ===== fetch with cache-buster =====
+    async function fetchText(url){
+      const v = Date.now();
+      const res = await fetch(`${url}?v=${v}`, {cache:"no-store"});
+      if(!res.ok) throw new Error(`HTTP ${res.status} @ ${url}`);
+      return await res.text();
+    }
+
+    async function loadData(){
+      const errors = [];
+      for(const url of candidates){
+        try{
+          const txt = await fetchText(url);
+          return {url, txt};
+        }catch(e){
+          errors.push(e.message);
+        }
+      }
+      throw new Error("데이터 파일을 찾지 못했습니다.\\n" + errors.join("\\n"));
+    }
+
+    // ===== 데이터 포맷: "DD|제목|링크" 또는 "DD|제목|본문약자|링크" =====
+    function parseData(txt){
+      const lines = txt.split(/\\r?\\n/).map(s=>s.trim()).filter(Boolean);
+      const map = new Map();
+      for(const line of lines){
+        const parts = line.split("|").map(s=>s.trim());
+        if(parts.length < 3) continue;
+        const d = parts[0];
+        if(!/^\\d{1,2}$/.test(d)) continue;
+        const day = String(parseInt(d,10));
+        const title = parts[1] || "";
+        let ref = "", href = "";
+        if(parts.length === 3){ // DD|제목|링크
+          href = parts[2];
+        }else{                 // DD|제목|본문약자|링크
+          ref  = parts[2];
+          href = parts[3] || "";
+        }
+        map.set(day, {title, ref, href});
+      }
+      return map;
+    }
+
+    // ===== 달력 렌더링 =====
+    function renderCalendar(map){
+      const grid = document.getElementById("grid");
+      if(!grid){ setStatus("grid 컨테이너가 없습니다."); return; }
+      grid.innerHTML = "";
+
+      const first = new Date(parseInt(year,10), parseInt(month,10)-1, 1);
+      const last = new Date(parseInt(year,10), parseInt(month,10), 0);
+      const startWeekday = first.getDay();
+      const total = last.getDate();
+
+      let day = 1;
+      for(let r=0;r<6;r++){
+        const row = document.createElement("div");
+        row.className = "row";
+        for(let c=0;c<7;c++){
+          const idx = r*7+c;
+          const cell = document.createElement("div");
+          cell.className = "cell";
+          if(idx < startWeekday || day > total){
+            cell.innerHTML = "";
+          }else{
+            const info = map.get(String(day));
+            const num = `<div class="d">${day}</div>`;
+            if(info){
+              const cap = info.ref ? `${info.title} <span class="ref">(${info.ref})</span>` : info.title;
+              const body = info.href
+                 ? `<a href="${info.href}" class="t" target="_blank" rel="noopener">${cap}</a>`
+                 : `<div class="t">${cap}</div>`;
+              cell.innerHTML = num + body;
+            }else{
+              cell.innerHTML = num + `<div class="t muted">-</div>`;
+            }
+            day++;
+          }
+          row.appendChild(cell);
+        }
+        grid.appendChild(row);
+      }
+    }
+
+    // ===== 실행 =====
+    (async()=>{
+      try{
+        hideStatus();
+        buildYearAndMonthUI();
+        const {url, txt} = await loadData();
+        setStatus(`데이터 로드: ${url}`);
+        const map = parseData(txt);
+        renderCalendar(map);
+      }catch(e){
+        setStatus("오류: " + e.message);
+        console.error(e);
+      }
+    })();
   })();
-
-  /* ===== 데이터 로딩: 현재 폴더의 data만 사용 ===== */
-  var dayMap = Object.create(null);
-
-  function isUrl(s){ return /^https?:\/\//i.test(s||''); }
-  function looksLikeVerse(s){ return /\b[가-힣A-Za-z]{1,4}\s*\d+\s*[:.:]\s*\d+/.test(s||''); }
-  function clean(s){ return (s||'').replace(/^"(.*)"$/, '$1').trim(); }
-
-  // 다양한 구분자 허용: |, 풀와이드 ｜, 탭, 콤마
-  var SPLIT_RE = /\s*[\|\uFF5C,\t]\s*/g;
-
-  function titleScore(s){
-    s = clean(s); if(!s) return -1;
-    if(isUrl(s)) return -1;
-    var base = (s.match(/[\p{L}\p{N}]/gu)||[]).length;
-    if(looksLikeVerse(s)) base -= 6;
-    if(/^제목\s*[:：]/.test(s)) base += 5;
-    if(s.length <= 1) base -= 10;
-    return base;
-  }
-
-  function parseText(text){
-    if(text && text.charCodeAt && text.charCodeAt(0)===0xFEFF) text = text.slice(1);
-    var lines = (text||'').replace(/\r\n?/g,'\n').split('\n');
-    for(var i=0;i<lines.length;i++){
-      var raw = lines[i];
-      if(!raw) continue;
-      var line = raw.trim();
-      if(!line || line.startsWith('#') || line.startsWith('//')) continue;
-
-      // DD로 시작하지 않는 줄 무시
-      var mday = line.match(/^\s*(\d{1,2})\s*[\|\uFF5C,\t]/);
-      if(!mday){ continue; }
-      var dd = parseInt(mday[1],10); if(!(dd>=1 && dd<=31)) continue;
-
-      // 첫 구분자 뒤의 나머지를 분해
-      var restStr = line.replace(/^\s*\d{1,2}\s*[\|\uFF5C,\t]\s*/, '');
-      var parts = restStr.split(SPLIT_RE).map(clean).filter(function(s){ return s!==''; });
-      if(parts.length === 0){
-        if(!dayMap[dd]) dayMap[dd] = {title:'', ref:'', url:'', extraCount:0};
-        else dayMap[dd].extraCount++;
-        continue;
-      }
-
-      // URL 추출 (맨 앞/중간 어디든)
-      var url = '';
-      for(var uidx=0; uidx<parts.length; uidx++){
-        if(isUrl(parts[uidx])){ url = parts[uidx]; parts.splice(uidx,1); break; }
-      }
-
-      // 제목 후보 선정
-      var best = '';
-      var bestScore = -1;
-      for(var p=0;p<parts.length;p++){
-        var s = parts[p].replace(/^제목\s*[:：]\s*/,'');
-        var sc = titleScore(s);
-        if(sc > bestScore){ bestScore = sc; best = s; }
-      }
-
-      // ref 선택: 제목으로 쓰지 않은 첫 항목(성구/메모 등)
-      var ref = '';
-      for(var q=0;q<parts.length;q++){
-        var s2 = parts[q].replace(/^제목\s*[:：]\s*/,'');
-        if(s2 === best) continue;
-        ref = parts[q]; break;
-      }
-
-      if(!dayMap[dd]) dayMap[dd] = {title:best||'', ref:ref||'', url:url||'', extraCount:0};
-      else dayMap[dd].extraCount++;
-    }
-  }
-
-  function loadData(){
-    var ym = y + '-' + String(m).padStart(2,'0') + '.txt';
-    var url = 'data/' + ym;
-    fetch(url, {cache:'no-store'})
-      .then(function(r){ return r.ok ? r.text() : ''; })
-      .then(function(t){ if(t && t.trim()){ parseText(t); } render(); })
-      .catch(function(){ render(); });
-  }
-
-  /* ===== 렌더 ===== */
-  function render(){
-    var grid = document.getElementById('grid'); grid.innerHTML='';
-    var first = new Date(y, m-1, 1);
-    var start = first.getDay();
-    var days = new Date(y, m, 0).getDate();
-
-    var cells = [];
-    for(var i=0;i<start;i++) cells.push({empty:true});
-    for(var d=1; d<=days; d++) cells.push({empty:false, day:d, info:dayMap[d]});
-    while(cells.length%7!==0) cells.push({empty:true});
-
-    for(var k=0;k<cells.length;k++){
-      var c = cells[k];
-      var cell = document.createElement('div');
-      cell.className = 'cell' + (c.empty?' is-empty':'');
-      if(c.empty){ grid.appendChild(cell); continue; }
-
-      var info = c.info || {title:'', ref:'', url:'', extraCount:0};
-      var box = (info.url) ? document.createElement('a') : document.createElement('div');
-      box.className = 'cellbox';
-      if(info.url){ box.href = info.url; box.target = '_blank'; box.rel='noopener'; }
-
-      var badge = document.createElement('div'); badge.className = 'dnum-badge'; badge.textContent = c.day; box.appendChild(badge);
-
-      var center = document.createElement('div'); center.className = 'center';
-      var titleEl = document.createElement('div'); titleEl.className = 'title-center';
-      titleEl.textContent = info.title || ''; center.appendChild(titleEl);
-      if(info.ref){ var r = document.createElement('div'); r.className='ref'; r.textContent = info.ref; center.appendChild(r); }
-      if(info.extraCount>0){ var mline = document.createElement('div'); mline.className='more'; mline.textContent = '+'+ info.extraCount +' 더 있음'; center.appendChild(mline); }
-
-      box.appendChild(center); cell.appendChild(box); grid.appendChild(cell);
-    }
-  }
-
-  loadData();
-})();
-</script>
+  </script>
 </body>
 </html>
+"""
+with open("/mnt/data/index.html", "w", encoding="utf-8") as f:
+    f.write(index_html)
+"/mnt/data/index.html"
