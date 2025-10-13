@@ -16,13 +16,10 @@
 19|언약의 산 – 시와 묵상 (2)|https://noemisuh.tistory.com/entry/covenant-meditation-2
 20|언약의 산 – 시와 묵상 (3)|https://noemisuh.tistory.com/entry/covenant-meditation-3
 21|언약의 산 – 시와 묵상 (4)|https://noemisuh.tistory.com/entry/covenant-meditation-4
-22|타락과 중보 – 예화|https://noemisuh.tistory.com/entry/exodus-intercession-illustration
-23|타락과 중보 – 시와 묵상 (1)|https://noemisuh.tistory.com/entry/exodus-intercession-meditation-1
-24|타락과 중보 – 시와 묵상 (2)|https://noemisuh.tistory.com/entry/exodus-intercession-meditation-2
-25|타락과 중보 – 시와 묵상 (3)|https://noemisuh.tistory.com/entry/exodus-intercession-meditation-3
-26|타락과 중보 – 시와 묵상 (4)|https://noemisuh.tistory.com/entry/exodus-intercession-meditation-4
-27|성막의 영광 – 예화|https://noemisuh.tistory.com/entry/tabernacle-glory-illustration
-28|성막의 영광 – 시와 묵상 (1)|https://noemisuh.tistory.com/entry/tabernacle-glory-meditation-1
-29|성막의 영광 – 시와 묵상 (2)|https://noemisuh.tistory.com/entry/tabernacle-glory-meditation-2
-30|성막의 영광 – 시와 묵상 (3)|https://noemisuh.tistory.com/entry/tabernacle-glory-meditation-3
-
+22|언약의 산 – 예화|https://noemisuh.tistory.com/entry/exodus-intercession-illustration
+24|출애굽 – 타락과 중보 (출 32:1–14)|https://noemisuh.tistory.com/entry/exodus-intercession
+25|타락과 중보 – 시와 묵상 (1)|https://noemisuh.tistory.com/entry/exodus-intercession-meditation-1
+26|타락과 중보 – 시와 묵상 (2)|https://noemisuh.tistory.com/entry/exodus-intercession-meditation-2
+27|타락과 중보 – 시와 묵상 (3)|https://noemisuh.tistory.com/entry/exodus-intercession-meditation-3
+28|타락과 중보 – 시와 묵상 (4)|https://noemisuh.tistory.com/entry/exodus-intercession-meditation-4
+29|타락과 중보 – 예화|https://noemisuh.tistory.com/entry/exodus-intercession-illustration
