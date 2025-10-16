@@ -246,7 +246,6 @@
 
     /* --- 제목 자동 채우기 --- */
     function setPageTitle(yy, mmStr){
-      var h1 = document.querySelector('#page-title, h1.page-title, h1');
       var nice = yy + '년 ' + parseInt(mmStr,10) + '월';
       if (h1 && !h1.textContent.trim()) h1.textContent = nice;
       if (!document.title || !document.title.trim()) document.title = nice;
