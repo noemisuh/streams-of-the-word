@@ -243,12 +243,12 @@
       if(PLATFORM === 'naver' && linkMap[original]) return linkMap[original];
       return original;
     }
-
-    /* --- 제목 자동 채우기 --- */
-    function setPageTitle(yy, mmStr){
-      var nice = yy + '년 ' + parseInt(mmStr,10) + '월';
-      if (h1 && !h1.textContent.trim()) h1.textContent = nice;
-      if (!document.title || !document.title.trim()) document.title = nice;
+    
+/* --- 제목 자동 채우기 --- */
+function setPageTitle(yy, mmStr){
+  var nice = yy + '년 ' + parseInt(mmStr,10) + '월';
+  // H1에는 아무 것도 쓰지 않습니다. (화면에 월 제목 표시 안 함)
+  if (!document.title || !document.title.trim()) document.title = nice;
 }
 
     /* --- 렌더 --- */
