@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>2024년 12월 달력 — 링크 빠른확인</title>
+<style>
+  :root{--border:#e6e6e6;--bg:#fafafa;--muted:#777}
+  body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;margin:24px}
+  h1{margin:0 0 12px}
+  .legend{font-size:12px;color:#555;margin-bottom:12px}
+  .cal{display:grid;grid-template-columns:repeat(7,minmax(140px,1fr));gap:8px}
+  .day,.head{border:1px solid var(--border);border-radius:10px;padding:10px;background:var(--bg);min-height:96px}
+  .head{background:#f1f1f1;text-align:center;font-weight:700}
+  .day .num{font-weight:700;margin-bottom:6px}
+  .day a{display:block;text-decoration:none;color:#0a7a3c;margin:4px 0;word-break:keep-all}
+  .status{display:inline-block;font-size:12px;padding:2px 6px;border-radius:999px;margin-top:6px;border:1px solid transparent}
+  .ok{background:#e8fff0;color:#0a7a3c;border-color:#bfe9cf}
+  .fail{background:#ffeeee;color:#b40000;border-color:#ffb3b3}
+  .todo{background:#eef1ff;color:#2f2f7a;border-color:#cfd6ff}
+  .controls{margin:12px 0 18px;display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  button{padding:8px 12px;border-radius:8px;border:1px solid #ccc;background:#fff;cursor:pointer}
+  button:hover{background:#f6f6f6}
+  small{color:var(--muted)}
+  @media (max-width:960px){.cal{grid-template-columns:repeat(7,minmax(110px,1fr))}}
+  @media (max-width:720px){.cal{grid-template-columns:repeat(2,1fr)}.head{display:none}}
+</style>
+</head>
+<body>
+  <h1>2024년 12월 달력 — 링크 빠른확인</h1>
+  <div class="legend">상태: <span class="status ok">OK</span> <span class="status fail">404/오류</span> <span class="status todo">미등록(#)</span></div>
+  <div class="controls">
+    <button id="check">모든 링크 빠른확인</button>
+    <button id="open-missing">미등록(#)만 보기</button>
+    <small>※ Tistory가 CORS를 막으면 일부 상태가 “오류”로 보일 수 있어요. 새 창으로 링크 자체 테스트도 병행하세요.</small>
+  </div>
+
+  <div id="calendar" class="cal"></div>
+
+<script>
+/* ===== 1) 12월 데이터 (제목+URL) — 필요시 여기만 수정 ===== */
+const base = "https://noemisuh.tistory.com/entry/";
+const D = {
+  7:  {t:"예비된 길, 준비된 마음 (눅 3:3–6)", u: base+"the-grace-of-waiting-and-the-prepared-way"},
+  8:  {t:"출애굽 – 하나님의 임재 (출 40:34–38)", u: base+"exodus-god-presence"},
+  9:  {t:"하나님의 임재 – 시와 묵상 (1)", u: base+"presence-meditation-1"},
+  10: {t:"하나님의 임재 – 시와 묵상 (2)", u: base+"presence-meditation-2"},
+  11: {t:"하나님의 임재 – 시와 묵상 (3)", u: base+"presence-meditation-3"},
+  12: {t:"하나님의 임재 – 시와 묵상 (4)", u: base+"presence-meditation-4"},
+  13: {t:"하나님의 임재 – 예화", u: base+"presence-illustration"},
+  14: {t:"임마누엘의 하나님 — 왜 오셨는가 (마 1:21–23)", u: base+"god-with-us-why-he-came"},
+  15: {t:"빛이 어둠에 비치다 (요 1:4–5)", u: base+"light-shines-in-the-darkness"},
+  16: {t:"말씀이 육신이 되어 (요 1:14)", u: base+"the-word-became-flesh"},
+  17: {t:"생명의 빛, 사람의 빛 (요 1:9)", u: base+"the-light-of-life"},
+  18: {t:"길과 진리와 생명 (요 14:6)", u: base+"the-way-the-truth-and-the-life"},
+  19: {t:"은혜와 진리가 충만하신 주 (요 1:16–17)", u: base+"full-of-grace-and-truth"},
+  20: {t:"임마누엘, 하나님이 우리와 함께 (사 7:14)", u: base+"emmanuel-god-with-us"},
+  21: {t:"성육신한 예수님 (요 1:14)", u: base+"the-incarnate-Jesus"},
+  22: {t:"임마누엘의 하나님 — 우리에게 왜 필요한가 (마 28:20)", u: base+"god-with-us-why-we-need-him"},
+  23: {t:"하늘의 영광, 땅의 평화 (눅 2:14)", u: base+"glory-in-the-highest-peace-on-earth"},
+  24: {t:"성탄전야 묵상 (눅 2:1–14)", u: base+"christmas-eve-meditation"},
+  25: {t:"성탄 메시지 (요 3:16)", u: base+"christmas-day-message"},
+  26: {t:"성탄 주간 묵상 3", u: "#"},
+  27: {t:"성탄 주간 묵상 4", u: "#"},
+  28: {t:"임마누엘의 하나님 — 구원자 예수 (딛 2:11–14)", u: base+"emmanuel-christ-our-savior"},
+  29: {t:"연말 묵상 1 — 시온의 대로 위에서 (사 35:8)", u: base+"on-the-highway-of-zion"},
+  30: {t:"연말 묵상 2", u: "#"},
+  31: {t:"송구영신 묵상 (빌 3:13–14)", u: base+"watchnight-meditation"},
+};
+
+/* ===== 2) 달력 헤더 ===== */
+const cal = document.getElementById("calendar");
+const heads = ["일","월","화","수","목","금","토"];
+heads.forEach(h => {
+  const el = document.createElement("div");
+  el.className = "head"; el.textContent = h;
+  cal.appendChild(el);
+});
+
+/* ===== 3) 2024년 12월 그리드 ===== */
+const firstDow = new Date(2024, 11, 1).getDay(); // 0=일 (11=12월)
+const days = 31;
+const cells = firstDow + days;
+const rows = Math.ceil(cells/7)*7;
+
+for(let i=0;i<rows;i++){
+  const el = document.createElement("div");
+  el.className = "day";
+  const dayNum = i - firstDow + 1;
+  if(dayNum>=1 && dayNum<=days){
+    const num = document.createElement("div");
+    num.className = "num"; num.textContent = dayNum;
+    el.appendChild(num);
+
+    const item = D[dayNum];
+    if(item){
+      const a = document.createElement("a");
+      a.href = item.u; a.target="_blank"; a.rel="noopener";
+      a.textContent = item.t;
+      el.appendChild(a);
+
+      const st = document.createElement("span");
+      st.className = "status " + (item.u==="#" ? "todo":"");
+      st.textContent = (item.u==="#") ? "미등록" : "확인 전";
+      el.appendChild(st);
+      el.dataset.url = item.u;
+    }
+  }
+  cal.appendChild(el);
+}
+
+/* ===== 4) 링크 빠른확인 (OK/404/오류) ===== */
+async function checkAll(){
+  const nodes = [...document.querySelectorAll(".day")].filter(d => d.dataset.url);
+  for(const d of nodes){
+    const url = d.dataset.url;
+    const st = d.querySelector(".status");
+    if(url==="#"){ st.className="status todo"; st.textContent="미등록"; continue; }
+    try{
+      const res = await fetch(url, { method:"GET", redirect:"follow" });
+      if(res.ok){
+        st.className="status ok"; st.textContent="OK";
+      }else{
+        st.className="status fail"; st.textContent=`오류(${res.status})`;
+      }
+    }catch(e){
+      st.className="status fail"; st.textContent="오류";
+    }
+  }
+}
+
+document.getElementById("check").addEventListener("click", checkAll);
+document.getElementById("open-missing").addEventListener("click", ()=>{
+  const miss = [...document.querySelectorAll(".day")].filter(d => d.dataset.url==="#");
+  if(!miss.length){ alert("미등록(#) 항목이 없습니다!"); return; }
+  const list = miss.map(d => {
+    const n = d.querySelector(".num")?.textContent ?? "?";
+    const t = d.querySelector("a")?.textContent ?? "(제목 없음)";
+    return `${n}일 — ${t}`;
+  }).join("\n");
+  alert("미등록(#) 목록:\n" + list);
+});
+</script>
+</body>
+</html>
