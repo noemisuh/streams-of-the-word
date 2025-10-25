@@ -79,11 +79,12 @@ const D = {
   31: {t:"주께 새해를 드리며 (롬 12:1)", u: base+"offering-the-new-year-to-the-lord"},
 };
 
-/* ===== (C) 안전장치: /entry/ 뒤만 URL 인코딩 (공백/쉼표 등) ===== */
+/* ===== (C) 안전장치: /entry/ 뒤만 URL 인코딩 
+// /entry/ 뒤만 인코딩
 function safe(u){
-  if(!u) return u;
-  return u.replace(/(\\/entry\\/)(.*)$/,(m,p1,p2)=>p1 + encodeURIComponent(p2));
+  return u ? u.replace(/(\/entry\/)(.*)$/,(m,p1,p2)=>p1 + encodeURIComponent(p2)) : u;
 }
+
 // 렌더 전에 한 번 적용
 Object.values(D).forEach(v => v.u = safe(v.u));
 
@@ -103,6 +104,9 @@ const days     = daysInMonth(CAL_YEAR, CAL_MONTH);
 const cells    = firstDow + days;
 const rows     = Math.ceil(cells/7)*7;
 
+// 렌더 전에 데이터 정리 (이미 위에서 실행했으면 중복 실행 무방)
+Object.values(D).forEach(v => v.u = safe(v.u));
+  
 /* ===== (F) 달력 출력 ===== */
 for(let i=0;i<rows;i++){
   const el = document.createElement("div");
@@ -131,24 +135,46 @@ for(let i=0;i<rows;i++){
 }
 
 /* ===== (G) 링크 빠른확인 (OK/404/오류) ===== */
+
+// /entry/ 뒤만 인코딩 (위에 이미 있으면 중복 선언하지 마세요)
+function safe(u){
+  return u ? u.replace(/(\/entry\/)(.*)$/,(m,p1,p2)=>p1 + encodeURIComponent(p2)) : u;
+}
+
+// 404일 때 -1 폴백 시도
+async function withFallback(url){
+  const tries = [url, url.replace(/$/, "-1")];
+  for (const u of tries){
+    try{
+      const r = await fetch(u, { method:"GET", redirect:"follow" });
+      if (r.ok) return u;
+    }catch(_) {}
+  }
+  return url;
+}
+
+// 상태 점검 시 OK면 폴백 반영
 async function checkAll(){
   const nodes = [...document.querySelectorAll(".day")].filter(d => d.dataset.url);
-  for(const d of nodes){
-    const url = d.dataset.url;
+  for (const d of nodes){
+    const url0 = d.dataset.url;
     const st = d.querySelector(".status");
-    if(url==="#"){ st.className="status todo"; st.textContent="미등록"; continue; }
+    if (url0==="#"){ st.className="status todo"; st.textContent="미등록"; continue; }
+
+    const url = await withFallback(url0);   // ← -1 폴백 고려
+    d.dataset.url = url;
+    const a = d.querySelector("a"); if (a) a.href = url;
+
     try{
       const res = await fetch(url, { method:"GET", redirect:"follow" });
-      if(res.ok){
-        st.className="status ok"; st.textContent="OK";
-      }else{
-        st.className="status fail"; st.textContent=`오류(${res.status})`;
-      }
-    }catch(e){
-      st.className="status fail"; st.textContent="오류";
+      st.className = "status " + (res.ok ? "ok" : "fail");
+      st.textContent = res.ok ? "OK" : `오류(${res.status})`;
+    }catch{
+      st.className = "status fail"; st.textContent = "오류";
     }
   }
 }
+
 document.getElementById("check").addEventListener("click", checkAll);
 
 /* ===== (H) 미등록(#) 목록 ===== */
