@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>2025년 12월 달력 — 링크 빠른확인</title>
+<title id="docTitle"></title>
 <style>
   :root{--border:#e6e6e6;--bg:#fafafa;--muted:#777}
   body{font-family:system-ui,-apple-system,"Segoe UI",Roboto,Apple SD Gothic Neo,Noto Sans KR,sans-serif;margin:24px}
@@ -27,18 +27,29 @@
 </style>
 </head>
 <body>
-  <h1>2025년 12월 달력 — 링크 빠른확인</h1>
+  <h1 id="pageH1"></h1>
   <div class="legend">상태: <span class="status ok">OK</span> <span class="status fail">404/오류</span> <span class="status todo">미등록(#)</span></div>
   <div class="controls">
     <button id="check">모든 링크 빠른확인</button>
+    <button id="open-all">모든 링크 새 창 테스트</button>
     <button id="open-missing">미등록(#)만 보기</button>
-    <small>※ Tistory가 CORS를 막으면 일부 상태가 “오류”로 보일 수 있어요. 새 창으로 링크 자체 테스트도 병행하세요.</small>
+    <small>※ Tistory가 CORS를 막으면 일부 상태가 “오류”로 보일 수 있어요. 새 창 테스트도 병행하세요.</small>
   </div>
 
   <div id="calendar" class="cal"></div>
 
 <script>
-/* ===== 1) 12월 데이터 (제목+URL) — 필요시 여기만 수정 ===== */
+/* ===== (A) 달력 연/월 설정 ===== */
+const CAL_YEAR  = 2025;
+const CAL_MONTH = 12; // 1~12
+
+/* 제목/헤더 동기화 */
+const titleText = `${CAL_YEAR}년 ${String(CAL_MONTH).padStart(2,"0")}월 달력 — 링크 빠른확인`;
+document.getElementById("docTitle").textContent = titleText;
+document.title = titleText;
+document.getElementById("pageH1").textContent = titleText;
+
+/* ===== (B) 12월 데이터 (제목+URL) — 필요시 여기만 수정 ===== */
 const base = "https://noemisuh.tistory.com/entry/";
 const D = {
   7:  {t:"예비된 길, 준비된 마음 (눅 3:3–6)", u: base+"the-grace-of-waiting-and-the-prepared-way"},
@@ -56,20 +67,27 @@ const D = {
   19: {t:"은혜와 진리가 충만하신 주 (요 1:16–17)", u: base+"full-of-grace-and-truth"},
   20: {t:"임마누엘, 하나님이 우리와 함께 (사 7:14)", u: base+"emmanuel-god-with-us"},
   21: {t:"성육신한 예수님 (요 1:14)", u: base+"the-incarnate-Jesus"},
-  22: {t:"임마누엘의 하나님 — 우리에게 왜 필요한가 (마 28:20)", u: base+"god-with-us-why-we-need-him"},
+  22: {t:"임마누엘의 하나님 — 우리에게 왜 필요한가 (마 28:20)", u: base+"god-with-us-why-we-need-him-1"}, // -1 반영
   23: {t:"하늘의 영광, 땅의 평화 (눅 2:14)", u: base+"glory-in-the-highest-peace-on-earth"},
   24: {t:"성탄전야 묵상 (눅 2:1–14)", u: base+"christmas-eve-meditation"},
   25: {t:"성탄 메시지 (요 3:16)", u: base+"christmas-day-message"},
- // ⬇️ 아래 26~31은 지금 리스트에 공백이 들어가서 깨진 상태였던 항목들
-  26: { t:"빛이 세상에 오셨다 (요 1:9)", u: base+"the-true-light-came-into-the-world" },  // 필요시 ...-1
-  27: { t:"어둠은 깨닫지 못했다 (요 1:5)", u: base+"the-darkness-did-not-understand-it" }, // 필요시 ...-1
-  28: { t:"은혜와 진리가 충만하신 주님 (요 1:14)", u: base+"full-of-grace-and-truth" },
-  29: { t:"감사의 단을 거두며 (시 126:5-6)", u: base+"gathering-the-sheaves-of-thanksgiving" },
-  30: { t:"돌아보니 은혜라 (신 8:2)", u: base+"looking-back-it-was-grace" },
-  31: { t:"주께 새해를 드리며 (롬 12:1)", u: base+"offering-the-new-year-to-the-lord" },
+  26: {t:"빛이 세상에 오셨다 (요 1:9)", u: base+"the-true-light-came-into-the-world"},   // 필요시 ...-1
+  27: {t:"어둠은 깨닫지 못했다 (요 1:5)", u: base+"the-darkness-did-not-understand-it"}, // 필요시 ...-1
+  28: {t:"은혜와 진리가 충만하신 주님 (요 1:14)", u: base+"full-of-grace-and-truth"},
+  29: {t:"감사의 단을 거두며 (시 126:5-6)", u: base+"gathering-the-sheaves-of-thanksgiving"},
+  30: {t:"돌아보니 은혜라 (신 8:2)", u: base+"looking-back-it-was-grace"},
+  31: {t:"주께 새해를 드리며 (롬 12:1)", u: base+"offering-the-new-year-to-the-lord"},
 };
-  
-/* ===== 2) 달력 헤더 ===== */
+
+/* ===== (C) 안전장치: /entry/ 뒤만 URL 인코딩 (공백/쉼표 등) ===== */
+function safe(u){
+  if(!u) return u;
+  return u.replace(/(\\/entry\\/)(.*)$/,(m,p1,p2)=>p1 + encodeURIComponent(p2));
+}
+// 렌더 전에 한 번 적용
+Object.values(D).forEach(v => v.u = safe(v.u));
+
+/* ===== (D) 달력 헤더 ===== */
 const cal = document.getElementById("calendar");
 const heads = ["일","월","화","수","목","금","토"];
 heads.forEach(h => {
@@ -78,12 +96,14 @@ heads.forEach(h => {
   cal.appendChild(el);
 });
 
-/* ===== 3) 2025년 12월 그리드 ===== */
-const firstDow = new Date(2024, 11, 1).getDay(); // 0=일 (11=12월)
-const days = 31;
-const cells = firstDow + days;
-const rows = Math.ceil(cells/7)*7;
+/* ===== (E) 그리드 계산 ===== */
+function daysInMonth(y, m){ return new Date(y, m, 0).getDate(); } // m: 1~12
+const firstDow = new Date(CAL_YEAR, CAL_MONTH - 1, 1).getDay();
+const days     = daysInMonth(CAL_YEAR, CAL_MONTH);
+const cells    = firstDow + days;
+const rows     = Math.ceil(cells/7)*7;
 
+/* ===== (F) 달력 출력 ===== */
 for(let i=0;i<rows;i++){
   const el = document.createElement("div");
   el.className = "day";
@@ -110,7 +130,7 @@ for(let i=0;i<rows;i++){
   cal.appendChild(el);
 }
 
-/* ===== 4) 링크 빠른확인 (OK/404/오류) ===== */
+/* ===== (G) 링크 빠른확인 (OK/404/오류) ===== */
 async function checkAll(){
   const nodes = [...document.querySelectorAll(".day")].filter(d => d.dataset.url);
   for(const d of nodes){
@@ -129,8 +149,9 @@ async function checkAll(){
     }
   }
 }
-
 document.getElementById("check").addEventListener("click", checkAll);
+
+/* ===== (H) 미등록(#) 목록 ===== */
 document.getElementById("open-missing").addEventListener("click", ()=>{
   const miss = [...document.querySelectorAll(".day")].filter(d => d.dataset.url==="#");
   if(!miss.length){ alert("미등록(#) 항목이 없습니다!"); return; }
@@ -138,8 +159,16 @@ document.getElementById("open-missing").addEventListener("click", ()=>{
     const n = d.querySelector(".num")?.textContent ?? "?";
     const t = d.querySelector("a")?.textContent ?? "(제목 없음)";
     return `${n}일 — ${t}`;
-  }).join("\n");
-  alert("미등록(#) 목록:\n" + list);
+  }).join("\\n");
+  alert("미등록(#) 목록:\\n" + list);
+});
+
+/* ===== (I) 모든 링크 새 창 테스트 ===== */
+document.getElementById("open-all").addEventListener("click", ()=>{
+  [...document.querySelectorAll(".day")].forEach(d=>{
+    const url = d.dataset.url;
+    if(url && url !== "#") window.open(url, "_blank", "noopener");
+  });
 });
 </script>
 </body>
