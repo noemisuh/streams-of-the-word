@@ -86,15 +86,11 @@
     .site-nav a[aria-current="page"]{opacity:1;background:rgba(255,255,255,.12)}
     .site-nav .sep{opacity:.35}
 
-    /* ==== 제목이 안 보이는 스킨 무력화 ==== */
-    h1#page-title, h1.page-title{
-      display:block !important; margin:24px 0 12px !important;
-      font-weight:800; font-size:clamp(22px,2.4vw,30px);
-      line-height:1.35; white-space:normal !important;
-      overflow:visible !important; text-overflow:clip !important;
-      height:auto !important; max-height:none !important;
-    }
-    .topbar, .header, #title-wrap{ overflow:visible !important; height:auto !important; }
+   /* ==== 제목 숨김 (월 제목 표시 X) ==== */
+h1#page-title, h1.page-title{
+  display:none !important;
+}
+.topbar, .header, #title-wrap{ overflow:visible !important; height:auto !important; } 
   </style>
 </head>
 <body>
@@ -256,13 +252,11 @@
     }
   }
 
-  /* ===== 타이틀 표시 ===== */
-  function setPageTitle(yy, mmStr){
-    var nice = yy + '년 ' + parseInt(mmStr,10) + '월';
-    var h1 = document.getElementById('page-title');
-    if (h1) h1.textContent = nice;          // H1에 보이기
-    document.title = '말씀따라 흐르는 샘물 - ' + nice; // 브라우저 탭 제목
-  }
+  /* ===== 타이틀 표시 (탭만 갱신) ===== */
+function setPageTitle(yy, mmStr){
+  var nice = yy + '년 ' + parseInt(mmStr,10) + '월';
+  document.title = '말씀따라 흐르는 샘물 - ' + nice; // H1은 건드리지 않음
+}
 
   /* ===== 렌더링 ===== */
   function render(){
