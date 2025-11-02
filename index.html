@@ -97,7 +97,7 @@ h1#page-title, h1.page-title{
 <body>
 
   <!-- 공통 네비 (중복 제거, 한 번만) -->
-  <header class="site-nav" role="navigation" aria-label="사이트 공통 메뉴">
+<header class="site-nav" role="navigation" aria-label="사이트 공통 메뉴">
   <nav>
     <a href="https://noemisuh.github.io/faith-scripture/">믿음으로 쓰는 성경</a>
     <span class="sep" aria-hidden="true">|</span>
@@ -105,12 +105,23 @@ h1#page-title, h1.page-title{
     <span class="sep" aria-hidden="true">|</span>
     <a href="https://noemisuh.github.io/streams-of-the-word/">말씀따라 흐르는 샘물</a>
     <span class="sep" aria-hidden="true">|</span>
+
+    <!-- 블로그 묶음 (스크립트가 이 span의 텍스트만 교체) -->
     <span aria-label="블로그 바로가기">
       블로그
-<small>(
-  <a href="https://noemisuh.tistory.com/category/%EC%8B%9C%EC%99%80%20%EA%B3%A0%EB%B0%B1" target="_blank">Tistory</a> |
-  <a href="https://blog.naver.com/noemisuh/224058295053" target="_blank">Naver</a>
-)</small>
+      <small>(
+        <a href="https://noemisuh.tistory.com/category/%EC%8B%9C%EC%99%80%20%EA%B3%A0%EB%B0%B1" target="_blank" rel="noopener">Tistory</a> |
+        <a href="https://blog.naver.com/noemisuh/224058295053" target="_blank" rel="noopener">Naver</a>
+      )</small>
+    </span>
+
+    <!-- 언어 스위처는 블로그 span 바깥에 둠 (스크립트 교체 영향 안 받도록) -->
+    <span id="lang-switch" style="margin-left:8px; opacity:.85">
+      <a href="#" data-lang="ko">한국어</a> |
+      <a href="#" data-lang="es">Español</a> |
+      <a href="#" data-lang="en">English</a> |
+      <a href="#" data-lang="zh">中文</a>
+    </span>
   </nav>
 </header>
 
@@ -138,60 +149,83 @@ h1#page-title, h1.page-title{
 
 <script>
 (function(){
-  /* ===== 기본값: 파라미터/해시 없으면 '오늘' 사용 ===== */
-  var now = new Date();
-  var DEFAULT_Y = null; // null → 오늘 연도
-  var DEFAULT_M = null; // null → 오늘 월(1~12)
+  /* ===== I18N 설정 (ko, es, en, zh) ===== */
+  var I18N = {
+    ko: {
+      brand: "말씀따라 흐르는 샘물",
+      daysShort: ["일","월","화","수","목","금","토"],
+      monthsShort:["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
+      monthsFull: ["1","2","3","4","5","6","7","8","9","10","11","12"],
+      nav: { root:"믿음으로 쓰는 성경", copy:"필사 성경", streams:"말씀따라 흐르는 샘물", blog:"블로그" },
+      title: (y,m)=> `${y}년 ${m}월`
+    },
+    es: {
+      brand: "Riachuelos de la Palabra",
+      daysShort: ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],
+      monthsShort:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+      monthsFull: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
+      nav: { root:"Biblia por fe", copy:"Biblia copiada a mano", streams:"Riachuelos de la Palabra", blog:"Blog" },
+      title: (y,mname)=> `${mname} de ${y}`
+    },
+    en: {
+      brand: "Streams of the Word",
+      daysShort: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+      monthsShort:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+      monthsFull: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+      nav: { root:"Faith Scripture", copy:"Hand-copied Bible", streams:"Streams of the Word", blog:"Blog" },
+      title: (y,mname)=> `${mname} ${y}`
+    },
+    zh: {
+      brand: "话语之溪流",
+      daysShort: ["日","一","二","三","四","五","六"],
+      monthsShort:["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+      monthsFull: ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"],
+      nav: { root:"凭信写圣经", copy:"手抄圣经", streams:"话语之溪流", blog:"博客" },
+      title: (y,mname)=> `${y}年${mname}`
+    }
+  };
 
-  /* ===== URL/해시 파싱 ===== */
+  /* ===== 날짜/URL 파싱 ===== */
+  var now = new Date();
   var u = new URL(location.href);
   var hash = (location.hash || '').replace('#','').trim(); // "YYYY-MM"
   var hashYm = hash.match(/^(\d{4})-(0[1-9]|1[0-2])$/);
-
-  var hasY = u.searchParams.has('y');
-  var hasM = u.searchParams.has('m');
-
-  var y = parseInt(
-    hasY ? u.searchParams.get('y')
-         : (hashYm ? hashYm[1] : (DEFAULT_Y || now.getFullYear())),
-    10
-  );
-  var m = parseInt(
-    hasM ? u.searchParams.get('m')
-         : (hashYm ? hashYm[2] : (DEFAULT_M || (now.getMonth()+1))),
-    10
-  );
-  if(!(y>=1900 && y<=9999)) y = now.getFullYear();
-  if(!(m>=1 && m<=12))      m = now.getMonth()+1;
+  var y = parseInt(u.searchParams.get('y') || (hashYm?hashYm[1]:now.getFullYear()),10);
+  var m = parseInt(u.searchParams.get('m') || (hashYm?hashYm[2]:(now.getMonth()+1)),10);
+  if(!(y>=1900&&y<=9999)) y = now.getFullYear();
+  if(!(m>=1&&m<=12)) m = now.getMonth()+1;
   var mm = String(m).padStart(2,'0');
 
-  /* ===== 플랫폼/언어 파라미터 ===== */
-  var lang = (u.searchParams.get('lang') || 'ko').toLowerCase();
+  /* ===== 언어 결정(쿼리 > 저장값 > ko) ===== */
+  var qLang = (u.searchParams.get('lang')||'').toLowerCase();
+  var saved = localStorage.getItem('sow_lang') || '';
+  var lang = qLang || saved || 'ko';
+  if(!I18N[lang]) lang='ko';
+  localStorage.setItem('sow_lang', lang);
+  document.documentElement.setAttribute('lang', lang);
+  var I = I18N[lang];
+
+  /* ===== 플랫폼 감지 (네이버/티스토리 우회 링크용) ===== */
   var PLATFORM = (u.searchParams.get('target') || '').toLowerCase();
   if(!PLATFORM){
     var host = location.hostname;
-    if(host.indexOf('naver.com')   > -1) PLATFORM = 'naver';
-    else if(host.indexOf('tistory.com')> -1) PLATFORM = 'tistory';
-    else PLATFORM = 'web';
+    if(host.indexOf('naver.com')>-1) PLATFORM='naver';
+    else if(host.indexOf('tistory.com')>-1) PLATFORM='tistory';
+    else PLATFORM='web';
   }
 
-  /* ===== 이동 함수 (y,m 유지 링크 생성에 사용) ===== */
+  /* ===== 이동 함수 ===== */
   function go(y2,m2){
     var nu = new URL(location.href);
     nu.searchParams.set('y', String(y2));
     nu.searchParams.set('m', String(m2));
-    // lang/target 유지
-    var currLang = (u.searchParams.get('lang') || lang);
-    if (currLang) nu.searchParams.set('lang', currLang);
-    var currTarget = (u.searchParams.get('target') || PLATFORM);
-    if (currTarget) nu.searchParams.set('target', currTarget);
-    // 캐시버스터
-    nu.searchParams.set('v', Date.now());
+    nu.searchParams.set('lang', lang);     // 언어 유지
+    nu.searchParams.set('v', Date.now());  // 캐시버스터
     location.href = nu.toString();
   }
   window.goYear = function(delta){ go(y+delta, m); };
 
-  /* ===== 상단 UI 바인딩 ===== */
+  /* ===== 상단 UI 바인딩 + i18n 적용 ===== */
   var yLabel = document.getElementById('yearLabel');
   if (yLabel) yLabel.textContent = y;
 
@@ -200,13 +234,34 @@ h1#page-title, h1.page-title{
   if (prev) prev.onclick = function(e){ e.preventDefault(); go(y-1, m); };
   if (next) next.onclick = function(e){ e.preventDefault(); go(y+1, m); };
 
+  // 브랜드 라벨
+  var brandText = document.querySelector('.brand span:last-child');
+  if (brandText) brandText.textContent = I.brand;
+
+  // 상단 네비 텍스트 교체
+  try{
+    var aRoot    = document.querySelector('.site-nav a[href*="faith-scripture"]');
+    var aCopy    = document.querySelector('.site-nav a[href*="faith-bible-copy"]');
+    var aStreams = document.querySelector('.site-nav a[href*="streams-of-the-word"]');
+    var spanBlog = document.querySelector('.site-nav span[aria-label]');
+    if(aRoot)    aRoot.textContent    = I.nav.root;
+    if(aCopy)    aCopy.textContent    = I.nav.copy;
+    if(aStreams) aStreams.textContent = I.nav.streams;
+    if(spanBlog){
+      var small = spanBlog.querySelector('small');
+      spanBlog.textContent = I.nav.blog + " ";
+      if(small) spanBlog.appendChild(small); // (Tistory|Naver) 부분 유지
+    }
+  }catch(_){}
+
+  // 월 바(i18n)
   var mbar  = document.getElementById('monthbar');
   if (mbar){
     mbar.innerHTML = '';
     for(var i=1;i<=12;i++){
       (function(ii){
         var a = document.createElement('a');
-        a.href = '#'; a.textContent = ii + '월';
+        a.href = '#'; a.textContent = I.monthsShort[ii-1];
         if(ii===m) a.className = 'active';
         a.onclick = function(e){ e.preventDefault(); go(y, ii); };
         mbar.appendChild(a);
@@ -214,7 +269,7 @@ h1#page-title, h1.page-title{
     }
   }
 
-  /* ===== 링크 매핑 (네이버/티스토리 전용 우회 링크) ===== */
+  /* ===== 네이버/티스토리 링크 맵 ===== */
   var linkMap = Object.create(null);
   function loadLinkMap(){
     return fetch('data/links-map.txt?v=' + Date.now(), {cache:'no-store'})
@@ -237,10 +292,18 @@ h1#page-title, h1.page-title{
     return original;
   }
 
-  /* ===== 데이터 파서 =====
-     포맷:
-     DD | 제목 | (선택) 본문약자 | 링크
-     예) 03|하늘의 노래|눅 2:14|https://... */
+  /* ===== 요일 헤더(i18n) ===== */
+  var head = document.querySelector('.cal .head');
+  if(head){
+    head.innerHTML = '';
+    I.daysShort.forEach(function(d){
+      var dv = document.createElement('div');
+      dv.textContent = d;
+      head.appendChild(dv);
+    });
+  }
+
+  /* ===== 데이터 파서: DD | 제목/타이틀 | (선택) 본문/Referencia | 링크 ===== */
   var dayMap = Object.create(null);
   function parseText(t){
     if(!t) return;
@@ -258,11 +321,17 @@ h1#page-title, h1.page-title{
     }
   }
 
-  /* ===== 타이틀 표시 (탭만 갱신) ===== */
-function setPageTitle(yy, mmStr){
-  var nice = yy + '년 ' + parseInt(mmStr,10) + '월';
-  document.title = '말씀따라 흐르는 샘물 - ' + nice; // H1은 건드리지 않음
-}
+  /* ===== 문서 탭 제목(i18n) ===== */
+  function setPageTitle(yy, mmNum){
+    var nice = (lang==='es')
+      ? I.title(yy, I.monthsFull[mmNum-1])
+      : (lang==='en')
+        ? I.title(yy, I.monthsFull[mmNum-1])
+        : (lang==='zh')
+          ? I.title(yy, I.monthsFull[mmNum-1])
+          : I.title(yy, mmNum);
+    document.title = I.brand + ' - ' + nice;
+  }
 
   /* ===== 렌더링 ===== */
   function render(){
@@ -315,30 +384,35 @@ function setPageTitle(yy, mmStr){
       grid.appendChild(cell);
     });
 
-    setPageTitle(y, mm);
+    setPageTitle(y, m);
   }
 
-  /* ===== 파일 로딩 ===== */
+  /* ===== 파일 로딩 (lang 우선 → ko → 기본) ===== */
   function tryFetch(url){
     return fetch(url + '?v=' + Date.now(), {cache:'no-store'})
             .then(function(r){ return r.ok ? r.text() : ''; })
             .catch(function(){ return ''; });
   }
   function load(){
-    var baseUrl = 'data/' + y + '-' + mm + '.txt';
     var langUrl = 'data/' + y + '-' + mm + '.' + lang + '.txt';
+    var koUrl   = 'data/' + y + '-' + mm + '.ko.txt';
+    var baseUrl = 'data/' + y + '-' + mm + '.txt';
+
     return tryFetch(langUrl).then(function(t){
       if(t){ parseText(t); render(); return; }
-      return tryFetch(baseUrl).then(function(t2){
-        parseText(t2); render();
+      return tryFetch(koUrl).then(function(t2){
+        if(t2){ parseText(t2); render(); return; }
+        return tryFetch(baseUrl).then(function(t3){
+          parseText(t3); render();
+        });
       });
     }).catch(function(){ render(); });
   }
 
   /* ===== 시작 ===== */
-  loadLinkMap().then(function(){ return load(); });
+  loadLinkMap().then(load);
 
-  /* 공통 네비 현재 페이지 강조 */
+  /* 현재 페이지 강조(네비) */
   (function(){
     var here = location.href.replace(/\/index\.html?$/,'').replace(/\/$/,'');
     document.querySelectorAll('.site-nav a').forEach(function(a){
@@ -346,6 +420,23 @@ function setPageTitle(yy, mmStr){
       if (here === href || (here.startsWith(href) && href.length>20)) {
         a.setAttribute('aria-current','page');
       }
+    });
+  })();
+
+  /* ===== 언어 스위처(상단 네비 오른쪽에 있으면 작동) ===== */
+  (function setupLangSwitch(){
+    var box = document.getElementById('lang-switch');
+    if(!box) return;
+    box.addEventListener('click', function(e){
+      var a = e.target.closest('a[data-lang]');
+      if(!a) return;
+      e.preventDefault();
+      var newLang = a.getAttribute('data-lang');
+      try{ localStorage.setItem('sow_lang', newLang); }catch(_){}
+      var u = new URL(location.href);
+      u.searchParams.set('lang', newLang);
+      u.searchParams.set('v', Date.now());
+      location.href = u.toString();
     });
   })();
 
