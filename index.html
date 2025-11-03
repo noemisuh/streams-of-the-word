@@ -107,21 +107,23 @@ h1#page-title, h1.page-title{
     <span class="sep" aria-hidden="true">|</span>
 
     <!-- 블로그 묶음 (스크립트가 이 span의 텍스트만 교체) -->
-    <span aria-label="블로그 바로가기">
-      블로그
-      <small>(
-        <a href="https://noemisuh.tistory.com/category/%EC%8B%9C%EC%99%80%20%EA%B3%A0%EB%B0%B1" target="_blank" rel="noopener">Tistory</a> |
-        <a href="https://blog.naver.com/noemisuh/224058295053" target="_blank" rel="noopener">Naver</a>
-      )</small>
-    </span>
+<span aria-label="블로그 바로가기">
+  블로그
+  <small>(
+    <a id="tistory-link"
+       href="https://noemisuh.tistory.com/category/%EC%8B%9C%EC%99%80%20%EA%B3%A0%EB%B0%B1"
+       target="_blank" rel="noopener">Tistory</a> |
+    <a href="https://blog.naver.com/noemisuh/224058295053" target="_blank" rel="noopener">Naver</a>
+  )</small>
+</span>
 
-    <!-- 언어 스위처는 블로그 span 바깥에 둠 (스크립트 교체 영향 안 받도록) -->
-    <span id="lang-switch" style="margin-left:8px; opacity:.85">
-      <a href="#" data-lang="ko">한국어</a> |
-      <a href="#" data-lang="es">Español</a> |
-      <a href="#" data-lang="en">English</a> |
-      <a href="#" data-lang="zh">中文</a>
-    </span>
+<!-- 언어 스위처는 블로그 span 바깥에 둠 (스크립트 교체 영향 안 받도록) -->
+<span id="lang-switch" style="margin-left:8px; opacity:.85">
+  <a href="#" data-lang="ko">한국어</a> |
+  <a href="#" data-lang="es">Español</a> |
+  <a href="#" data-lang="en">English</a> |
+  <a href="#" data-lang="zh">中文</a>
+</span>
   </nav>
 </header>
 
@@ -443,5 +445,65 @@ h1#page-title, h1.page-title{
 })();
 </script>
 
+<script>
+(function () {
+  // 1) 언어별 Tistory 도메인/경로 (필요시 en/zh 실제 도메인으로 교체)
+  const TISTORY_BY_LANG = {
+    ko: "https://noemisuh.tistory.com/category/%EC%8B%9C%EC%99%80%20%EA%B3%A0%EB%B0%B1",
+    es: "https://gloriadios-es.tistory.com",
+    en: "https://noemisuh.tistory.com",
+    zh: "https://noemisuh.tistory.com"
+  };
+
+  // 2) 요소 찾기
+  const tistoryA = document.getElementById("tistory-link");
+  const langLinks = document.querySelectorAll("#lang-switch a[data-lang]");
+
+  // 3) 현재 언어 추정(있으면 사용, 없으면 ko)
+  function detectInitialLang() {
+    // (a) #lang-switch에서 활성화 표시가 있는 경우
+    const active = document.querySelector("#lang-switch a.active[data-lang]");
+    if (active) return active.dataset.lang;
+
+    // (b) <body data-lang="...">를 쓰고 있다면
+    const bodyLang = document.body && document.body.dataset && document.body.dataset.lang;
+    if (bodyLang) return bodyLang;
+
+    // (c) URL 쿼리나 해시에서 ?lang=es / #lang=es 형태를 사용하는 경우
+    const m1 = location.search.match(/[?&]lang=(ko|es|en|zh)\b/i);
+    if (m1) return m1[1].toLowerCase();
+    const m2 = location.hash.match(/lang=(ko|es|en|zh)\b/i);
+    if (m2) return m2[1].toLowerCase();
+
+    // (d) 기본값
+    return "ko";
+  }
+
+  function applyLang(lang) {
+    const url = TISTORY_BY_LANG[lang] || TISTORY_BY_LANG.ko;
+    if (tistoryA) {
+      tistoryA.href = url;
+      tistoryA.target = "_blank";
+      tistoryA.rel = "noopener";
+    }
+  }
+
+  // 4) 스위처 클릭 시 반영
+  langLinks.forEach(a => {
+    a.addEventListener("click", e => {
+      e.preventDefault();
+      const lang = a.dataset.lang;
+      applyLang(lang);
+
+      // 선택 상태 표시(선택사항)
+      langLinks.forEach(x => x.classList.remove("active"));
+      a.classList.add("active");
+    });
+  });
+
+  // 5) 초기 적용
+  applyLang(detectInitialLang());
+})();
+</script>
 </body>
 </html>
