@@ -459,25 +459,39 @@ h1#page-title, h1.page-title{
   const tistoryA = document.getElementById("tistory-link");
   const langLinks = document.querySelectorAll("#lang-switch a[data-lang]");
 
-  // 3) 현재 언어 추정(있으면 사용, 없으면 ko)
-  function detectInitialLang() {
-    // (a) #lang-switch에서 활성화 표시가 있는 경우
-    const active = document.querySelector("#lang-switch a.active[data-lang]");
-    if (active) return active.dataset.lang;
+// 3) 현재 언어 추정(있으면 사용, 없으면 ko)
+function detectInitialLang() {
+  // (0) html lang 속성(앞쪽 스크립트에서 이미 설정함)
+  const htmlLang = (document.documentElement.getAttribute('lang') || '').toLowerCase();
+  if (/(ko|es|en|zh)/.test(htmlLang)) return htmlLang;
 
-    // (b) <body data-lang="...">를 쓰고 있다면
-    const bodyLang = document.body && document.body.dataset && document.body.dataset.lang;
-    if (bodyLang) return bodyLang;
+  // (1) URL 쿼리 ?lang=...
+  const m1 = location.search.match(/[?&]lang=(ko|es|en|zh)\b/i);
+  if (m1) return m1[1].toLowerCase();
 
-    // (c) URL 쿼리나 해시에서 ?lang=es / #lang=es 형태를 사용하는 경우
-    const m1 = location.search.match(/[?&]lang=(ko|es|en|zh)\b/i);
-    if (m1) return m1[1].toLowerCase();
-    const m2 = location.hash.match(/lang=(ko|es|en|zh)\b/i);
-    if (m2) return m2[1].toLowerCase();
+  // (2) 해시 #lang=...
+  const m2 = location.hash.match(/lang=(ko|es|en|zh)\b/i);
+  if (m2) return m2[1].toLowerCase();
 
-    // (d) 기본값
-    return "ko";
-  }
+  // (3) localStorage(sow_lang) — 앞쪽 스크립트가 저장함
+  try {
+    const ls = localStorage.getItem('sow_lang');
+    if (/(ko|es|en|zh)/.test(ls)) return ls.toLowerCase();
+  } catch (_) {}
+
+  // (4) body data-lang
+  const bodyLang = document.body?.dataset?.lang;
+  if (/(ko|es|en|zh)/.test(bodyLang)) return bodyLang.toLowerCase();
+
+  // (5) 기본값
+  return "ko";
+}
+
+// 5) 초기 적용 (← 이 블록은 함수 “밖”에 있어야 함)
+const initLang = detectInitialLang();
+applyLang(initLang);
+// 혹시 이후 다른 스크립트가 href를 바꿔도 다시 고정
+setTimeout(() => applyLang(initLang), 0);
 
   function applyLang(lang) {
     const url = TISTORY_BY_LANG[lang] || TISTORY_BY_LANG.ko;
