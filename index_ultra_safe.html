@@ -1,0 +1,108 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>말씀따라 흐르는 샘물 — Ultra Safe</title>
+<meta name="color-scheme" content="light dark" />
+<style>
+  :root{--fg:#111827;--bg:#ffffff;--muted:#6b7280;--line:#e5e7eb}
+  @media (prefers-color-scheme: dark){:root{--fg:#e5e7eb;--bg:#0b0f14;--muted:#9ca3af;--line:#334155}}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--fg);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR",sans-serif}
+  a{color:#0ea5e9;text-decoration:none}
+  .site-nav{position:sticky;top:0;z-index:10000;isolation:isolate;background:#0f172a;color:#fff}
+  .site-nav nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:12px}
+  .site-nav a{color:#fff;opacity:.95;padding:4px 6px;border-radius:8px}
+  .site-nav a:hover{opacity:1;text-decoration:underline}
+  .wrap{max-width:980px;margin:0 auto;padding:24px 16px}
+  .note{padding:12px 14px;border:1px solid var(--line);border-radius:10px;margin:8px 0}
+  .grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-top:14px}
+  .cell{border:1px solid var(--line);border-radius:10px;min-height:100px;padding:8px}
+  .cell strong{font-size:12px;color:var(--muted)}
+  .brand{display:flex;align-items:center;gap:10px;font-weight:800;margin-top:8px}
+  .brand .dot{width:10px;height:10px;border-radius:50%;background:#0ea5e9}
+</style>
+</head>
+<body>
+<header class="site-nav" role="navigation" aria-label="사이트 공통 메뉴">
+  <nav>
+    <a href="https://noemisuh.github.io/faith-scripture/">믿음으로 쓰는 성경</a>
+    <span aria-hidden="true">|</span>
+    <a href="https://noemisuh.github.io/faith-bible-copy/">필사 성경</a>
+    <span aria-hidden="true">|</span>
+    <a href="https://noemisuh.github.io/streams-of-the-word/">말씀따라 흐르는 샘물</a>
+    <span aria-hidden="true">|</span>
+    <span>블로그 <small>(
+      <a href="https://noemisuh.tistory.com/category/%EC%8B%9C%EC%99%80%20%EA%B3%A0%EB%B0%B1" target="_blank" rel="noopener">Tistory</a> |
+      <a href="https://blog.naver.com/noemisuh/224058295053" target="_blank" rel="noopener">Naver</a>
+    )</small></span>
+    <span style="margin-left:8px;opacity:.85">
+      <a href="?lang=ko">한국어</a> | <a href="?lang=es">Español</a> | <a href="?lang=en">English</a> | <a href="?lang=zh">中文</a>
+    </span>
+  </nav>
+</header>
+
+<div class="wrap">
+  <div class="brand"><span class="dot" aria-hidden="true"></span>말씀따라 흐르는 샘물 — Ultra Safe</div>
+  <div class="note">
+    <strong>목적:</strong> 문제 원인을 분리하기 위한 초간단 테스트 페이지입니다. 
+    자바스크립트(fetch 포함) 없이 네비/격자만 표시합니다. 이 페이지가 보이면 <em>호스팅/오버레이 문제는 아닙니다.</em>
+  </div>
+
+  <h3>달력 샘플(정적 테스트)</h3>
+  <div class="grid" aria-label="calendar-sample">
+    <!-- 7 x 6 = 42 cells, 단순 테스트용 숫자 -->
+    <div class="cell"><strong>1</strong></div>
+    <div class="cell"><strong>2</strong></div>
+    <div class="cell"><strong>3</strong></div>
+    <div class="cell"><strong>4</strong></div>
+    <div class="cell"><strong>5</strong></div>
+    <div class="cell"><strong>6</strong></div>
+    <div class="cell"><strong>7</strong></div>
+    <div class="cell"><strong>8</strong></div>
+    <div class="cell"><strong>9</strong></div>
+    <div class="cell"><strong>10</strong></div>
+    <div class="cell"><strong>11</strong></div>
+    <div class="cell"><strong>12</strong></div>
+    <div class="cell"><strong>13</strong></div>
+    <div class="cell"><strong>14</strong></div>
+    <div class="cell"><strong>15</strong></div>
+    <div class="cell"><strong>16</strong></div>
+    <div class="cell"><strong>17</strong></div>
+    <div class="cell"><strong>18</strong></div>
+    <div class="cell"><strong>19</strong></div>
+    <div class="cell"><strong>20</strong></div>
+    <div class="cell"><strong>21</strong></div>
+    <div class="cell"><strong>22</strong></div>
+    <div class="cell"><strong>23</strong></div>
+    <div class="cell"><strong>24</strong></div>
+    <div class="cell"><strong>25</strong></div>
+    <div class="cell"><strong>26</strong></div>
+    <div class="cell"><strong>27</strong></div>
+    <div class="cell"><strong>28</strong></div>
+    <div class="cell"><strong>29</strong></div>
+    <div class="cell"><strong>30</strong></div>
+    <div class="cell"><strong>31</strong></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+    <div class="cell"></div>
+  </div>
+
+  <div class="note" style="margin-top:14px">
+    <ol>
+      <li>상단 네비 링크가 모두 클릭되면 <strong>오버레이/포인터 문제 없음</strong>입니다.</li>
+      <li>이 페이지가 정상인데 원본 index가 안 뜨면, 원인은 <em>자바스크립트 에러</em> 또는 <em>데이터 파일 경로/이름</em>입니다.</li>
+    </ol>
+  </div>
+</div>
+</body>
+</html>
