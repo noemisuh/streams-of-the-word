@@ -355,29 +355,11 @@ h1#page-title, h1.page-title{
       if(c.empty){ grid.appendChild(cell); return; }
 
       var info = c.info;
-      var box = (info && info.href) ? document.createElement('a') : document.createElement('div');
+     var box = (info && info.href) ? document.createElement('a') : document.createElement('div'); 
        box.className = 'cellbox';
 
-     var finalHref = info ? getHref(info.href) : '';
-     if (finalHref) {
-       try {
-         const u = new URL(finalHref, location.href);
-         const sameOrigin = (u.origin === location.origin);
-       if (sameOrigin) {
-        // 내부 문서면 현재 lang/y/m/d 유지
-        u.searchParams.set('lang', lang);
-        u.searchParams.set('y', String(y));
-        u.searchParams.set('m', String(m));
-        u.searchParams.set('d', String(c.d));
-        box.href = u.toString();
-        box.target = '_self';
-        box.removeAttribute('rel'); // 내부 링크엔 rel 제거
-        } else {
-        // 외부(블로그 등)는 그대로 새창
-        box.href = u.toString();
-        box.target = '_blank';
-        box.rel = 'noopener noreferrer';
-       }
+var finalHref = info ? getHref(info.href) : '';
+     if(finalHref){ box.href = finalHref; box.target = '_blank'; box.rel='noopener'; }
       }
       
       var badge = document.createElement('div');
