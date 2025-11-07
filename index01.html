@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>말씀따라 흐르는 샘물</title>
+<meta name="color-scheme" content="light dark" />
+<style>
+:root{--fg:#111827;--muted:#6b7280;--line:#e5e7eb;--line-strong:#cbd5e1;--accent:#0ea5e9;--bg:#ffffff;--box:#ffffff;--bgsoft:#f8fafc}
+@media (prefers-color-scheme: dark){
+  :root{--fg:#e5e7eb;--muted:#9ca3af;--line:#334155;--line-strong:#475569;--accent:#38bdf8;--bg:#0b0f14;--box:#0f1720;--bgsoft:#0f1720}
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+a{color:#0ea5e9}
+.wrap{max-width:1080px;margin:0 auto;padding:56px 16px 24px}
+.top{display:grid;grid-template-rows:40px 36px 40px;row-gap:12px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:800;letter-spacing:.02em;font-size:18px}
+.brand .dot{width:10px;height:10px;border-radius:50%;background:var(--accent)}
+.yearbar{display:flex;justify-content:center;align-items:center;gap:16px}
+.yearbar a{text-decoration:none;padding:6px 10px;border-radius:10px;border:1px solid var(--line-strong);background:var(--box);color:var(--fg)}
+.yearbar .yr{min-width:90px;text-align:center;font-weight:700;border:none;background:transparent;color:var(--fg)}
+.monthbar{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 10px}
+.monthbar a{text-decoration:none;padding:6px 10px;border-radius:999px;border:1px solid var(--line);color:var(--fg);background:var(--box)}
+.monthbar a.active{border-color:var(--accent);outline:2px solid rgba(56,189,248,.25)}
+.cal{margin-top:18px;border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;background:var(--box)}
+.cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--bgsoft)}
+.cal .head div{padding:10px 8px;text-align:center;font-weight:700;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px;position:relative}
+.grid .cell:nth-child(7n){border-right:none}
+.cellbox{position:relative;display:flex;flex-direction:column;width:100%;min-height:140px;padding:28px 16px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(14,165,233,.10);text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s,background .15s}
+a.cellbox:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);border-color:var(--accent);background:rgba(14,165,233,.14)}
+.dnum-badge{position:absolute;left:10px;top:10px;z-index:3;font-size:12px;color:var(--muted);padding:2px 6px;border:1px solid var(--line);border-radius:8px;background:var(--box)}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px 4px}
+.title-center{max-width:100%;font-size:16px;line-height:1.4;white-space:normal;word-break:keep-all;text-wrap:balance;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;margin:0}
+.ref{margin-top:8px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (prefers-color-scheme: dark){
+  .cellbox{background:rgba(56,189,248,.12)}
+  .dnum-badge{background:#0f1720;border-color:#334155;color:#9ca3af}
+}
+.site-nav{background:#0f172a;color:#fff;position:sticky;top:0;z-index:20}
+.site-nav nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:12px}
+.site-nav a{color:#fff;text-decoration:none;opacity:.9;padding:4px 6px;border-radius:8px}
+.site-nav a:hover,.site-nav a:focus{opacity:1;text-decoration:underline}
+.site-nav a[aria-current="page"]{opacity:1;background:rgba(255,255,255,.12)}
+.site-nav .sep{opacity:.35}
+.site-nav small{opacity:.8;font-size:.9em}
+h1#page-title,h1.page-title{display:none!important}
+.topbar,.header,#title-wrap{overflow:visible!important;height:auto!important}
+</style>
+</head>
+<body>
+<header class="site-nav" role="navigation" aria-label="사이트 공통 메뉴">
+  <nav>
+    <a href="https://noemisuh.github.io/faith-scripture/">믿음으로 쓰는 성경</a>
+    <span class="sep" aria-hidden="true">|</span>
+    <a href="https://noemisuh.github.io/faith-bible-copy/">필사 성경</a>
+    <span class="sep" aria-hidden="true">|</span>
+    <a href="https://noemisuh.github.io/streams-of-the-word/">말씀따라 흐르는 샘물</a>
+    <span class="sep" aria-hidden="true">|</span>
+    <span id="blog-span" aria-label="블로그 바로가기">블로그
+      <small>( <a id="tistory-link" href="#" target="_blank" rel="noopener">Tistory</a> | <a id="naver-link" href="https://blog.naver.com/noemisuh/224058295053" target="_blank" rel="noopener">Naver</a> )</small>
+    </span>
+    <span id="lang-switch" style="margin-left:8px;opacity:.85">
+      <a href="#" data-lang="ko">한국어</a> | <a href="#" data-lang="es">Español</a> | <a href="#" data-lang="en">English</a> | <a href="#" data-lang="zh">中文</a>
+    </span>
+  </nav>
+</header>
+
+<div class="wrap">
+  <header id="title-wrap"><h1 id="page-title" class="page-title"></h1></header>
+  <section class="top" aria-label="상단">
+    <div class="brand"><span class="dot" aria-hidden="true"></span><span>말씀따라 흐르는 샘물</span></div>
+    <nav class="yearbar" aria-label="년도">
+      <a id="prevYear" href="#" aria-label="이전 해">◀</a>
+      <span class="yr" id="yearLabel">0000</span>
+      <a id="nextYear" href="#" aria-label="다음 해">▶</a>
+    </nav>
+    <nav class="monthbar" id="monthbar" aria-label="월"></nav>
+  </section>
+
+  <section class="cal" aria-label="달력">
+    <div class="head" id="weekday-head"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
+    <div id="grid" class="grid" role="grid" aria-label="달력 그리드"></div>
+  </section>
+</div>
+
+<script>
+(function(){
+  /* ===== I18N ===== */
+  var I18N = {
+  ko: {
+    brand: "말씀따라 흐르는 샘물",
+    daysShort: ["일","월","화","수","목","금","토"],
+    monthsShort:["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
+    monthsFull: ["1","2","3","4","5","6","7","8","9","10","11","12"],
+    nav: { root:"믿음으로 쓰는 성경", copy:"필사 성경", streams:"말씀따라 흐르는 샘물", blog:"블로그" },
+    title: (y,m)=> `${y}년 ${m}월`
+  },
+  es: {
+    brand: "Riachuelos de la Palabra",
+    daysShort: ["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],
+    monthsShort:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+    monthsFull: ["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
+    nav: { root:"Biblia por fe", copy:"Biblia copiada a mano", streams:"Riachuelos de la Palabra", blog:"Blog" },
+    title: (y,mname)=> `${mname} de ${y}`
+  },
+  en: {
+    brand: "Streams of the Word",
+    daysShort: ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+    monthsShort:["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+    monthsFull: ["January","February","March","April","May","June","July","August","September","October","November","December"],
+    nav: { root:"Faith Scripture", copy:"Hand-copied Bible", streams:"Streams of the Word", blog:"Blog" },
+    title: (y,mname)=> `${mname} ${y}`
+  },
+  zh: {
+    brand: "话语之溪流",
+    daysShort: ["日","一","二","三","四","五","六"],
+    monthsShort:["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+    monthsFull: ["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"],
+    nav: { root:"凭信写圣经", copy:"手抄圣经", streams:"话语之溪流", blog:"博客" },
+    title: (y,mname)=> `${y}年${mname}`
+  }
+};
+
+  /* ===== 파라미터/언어 ===== */
+  var now=new Date();
+  var u=new URL(location.href);
+  var qLang=(u.searchParams.get('lang')||'').toLowerCase();
+  var saved=localStorage.getItem('sow_lang')||'';
+  var lang=qLang||saved||'ko'; if(!I18N[lang]) lang='ko';
+  try{localStorage.setItem('sow_lang',lang);}catch(e){}
+  document.documentElement.setAttribute('lang',lang);
+  var I=I18N[lang];
+
+  var hash=(location.hash||'').replace('#','').trim(); // YYYY-MM
+  var hashYm=hash.match(/^(\d{4})-(0[1-9]|1[0-2])$/);
+  var y=parseInt(u.searchParams.get('y')||(hashYm?hashYm[1]:now.getFullYear()),10);
+  var m=parseInt(u.searchParams.get('m')||(hashYm?hashYm[2]:(now.getMonth()+1)),10);
+  if(!(y>=1900&&y<=9999)) y=now.getFullYear();
+  if(!(m>=1&&m<=12)) m=now.getMonth()+1;
+
+  /* ===== 상단 UI ===== */
+  var yLabel=document.getElementById('yearLabel'); if(yLabel) yLabel.textContent=y;
+  var prev=document.getElementById('prevYear'); var next=document.getElementById('nextYear');
+  if(prev) prev.onclick=function(e){e.preventDefault();go(y-1,m)}; if(next) next.onclick=function(e){e.preventDefault();go(y+1,m)};
+  var brandText=document.querySelector('.brand span:last-child'); if(brandText) brandText.textContent=I.brand;
+
+  function go(y2,m2){
+    var nu=new URL(location.href);
+    nu.searchParams.set('y',String(y2)); nu.searchParams.set('m',String(m2));
+    nu.searchParams.set('lang',lang); nu.searchParams.set('v',Date.now());
+    location.href=nu.toString();
+  }
+
+  // 상단 네비 텍스트
+  try{
+    var aRoot=document.querySelector('.site-nav a[href*="faith-scripture"]');
+    var aCopy=document.querySelector('.site-nav a[href*="faith-bible-copy"]');
+    var aStreams=document.querySelector('.site-nav a[href*="streams-of-the-word"]');
+    var spanBlog=document.getElementById('blog-span');
+    if(aRoot) aRoot.textContent=I.nav.root;
+    if(aCopy) aCopy.textContent=I.nav.copy;
+    if(aStreams) aStreams.textContent=I.nav.streams;
+    if(spanBlog){ var small=spanBlog.querySelector('small'); spanBlog.textContent=I.nav.blog+" "; if(small) spanBlog.appendChild(small); }
+  }catch(_){}
+
+  // 요일 헤더
+  var head=document.getElementById('weekday-head'); if(head){ head.innerHTML=''; I.daysShort.forEach(function(d){var dv=document.createElement('div'); dv.textContent=d; head.appendChild(dv);});}
+
+  // 월바
+  var mbar=document.getElementById('monthbar');
+  if(mbar){
+    mbar.innerHTML='';
+    for(var i=1;i<=12;i++){
+      (function(ii){
+        var a=document.createElement('a'); a.href='#'; a.textContent=I.monthsShort[ii-1];
+        if(ii===m) a.className='active';
+        a.onclick=function(e){e.preventDefault();go(y,ii)};
+        mbar.appendChild(a);
+      })(i);
+    }
+  }
+
+  // 문서 제목
+  function setPageTitle(yy,mmNum){
+    var nice=(lang==='es'||lang==='en'||lang==='zh') ? I.title(yy, I.monthsFull[mmNum-1]) : I.title(yy, mmNum);
+    document.title=I.brand+' - '+nice;
+  }
+
+  /* ===== 단일파일 내장 데이터 사용 =====
+     window.SOW_EMBED_DATA = {
+       "2025-11:ko": [
+          ["01","감사로 시작하라","시편 100:4","https://..."],
+          ...
+       ],
+       "2025-11:es": [ ... ]
+     }
+  */
+  var key = (y+'-'+String(m).padStart(2,'0')+':'+lang);
+  var dayMap = Object.create(null);
+  var data = (window.SOW_EMBED_DATA && window.SOW_EMBED_DATA[key]) || [];
+
+  data.forEach(function(row){
+    var d = parseInt(row[0],10);
+    if(!(d>=1&&d<=31)) return;
+    dayMap[d] = { title: row[1]||'', ref: row[2]||'', href: row[3]||'' };
+  });
+
+  function render(){
+    var grid=document.getElementById('grid'); if(!grid) return;
+    grid.innerHTML='';
+    var first=new Date(y,m-1,1); var start=first.getDay(); var days=new Date(y,m,0).getDate();
+    var cells=[];
+    for(var s=0;s<start;s++) cells.push({empty:true});
+    for(var d=1; d<=days; d++) cells.push({empty:false,d:d,info:dayMap[d]});
+    while(cells.length%7!==0) cells.push({empty:true});
+
+    cells.forEach(function(c){
+      var cell=document.createElement('div'); cell.className='cell';
+      if(c.empty){grid.appendChild(cell);return;}
+      var info=c.info;
+      var el = (info && info.href) ? document.createElement('a') : document.createElement('div');
+      el.className='cellbox';
+      if(info && info.href){ el.href=info.href; el.target='_blank'; el.rel='noopener'; }
+
+      var badge=document.createElement('div'); badge.className='dnum-badge'; badge.textContent=c.d; el.appendChild(badge);
+      var center=document.createElement('div'); center.className='center';
+      var tEl=document.createElement('div'); tEl.className='title-center'; tEl.textContent=(info && info.title)||''; center.appendChild(tEl);
+      if(info && info.ref){ var r=document.createElement('div'); r.className='ref'; r.textContent=info.ref; center.appendChild(r); }
+      el.appendChild(center);
+      cell.appendChild(el); grid.appendChild(cell);
+    });
+
+    setPageTitle(y,m);
+  }
+
+  // 언어 스위처
+  (function setupLangSwitch(){
+    var box=document.getElementById('lang-switch'); if(!box) return;
+    box.addEventListener('click',function(e){
+      var a=e.target.closest('a[data-lang]'); if(!a) return;
+      e.preventDefault();
+      var newLang=a.getAttribute('data-lang');
+      try{localStorage.setItem('sow_lang',newLang);}catch(_){}
+      var nu=new URL(location.href); nu.searchParams.set('lang',newLang); nu.searchParams.set('v',Date.now()); location.href=nu.toString();
+    });
+  })();
+
+  // Tistory 링크 언어별
+  (function(){
+    var TISTORY={ko:"https://noemisuh.tistory.com/category/%EC%8B%9C%EC%99%80%20%EA%B3%A0%EB%B0%B1", es:"https://gloriadios-es.tistory.com", en:"https://noemisuh.tistory.com", zh:"https://noemisuh.tistory.com"};
+    var t=document.getElementById('tistory-link'); if(t){ t.href=TISTORY[lang]||TISTORY.ko; t.target="_blank"; t.rel="noopener"; }
+  })();
+
+  // 렌더
+  render();
+})();
+</script>
+
+<!-- ⬇️ 여기 JSON 안에 제목/본문/링크를 붙이면 즉시 반영됩니다. (외부 파일 불필요) -->
+<script id="SOW_EMBED_DATA" type="application/json">
+{
+  "2025-11:ko": [
+    ["01","감사로 시작하라","시편 100:4","https://noemisuh.tistory.com/entry/thanksgiving-day-1"],
+    ["02","새 아침의 감사","시편 5:3","https://noemisuh.tistory.com/entry/thanks-morning"],
+    ["03","말씀의 샘","시편 1:2-3","https://noemisuh.tistory.com/entry/word-spring"],
+    ["04","주 안의 평안","요한복음 14:27","https://noemisuh.tistory.com/entry/peace-in-christ"],
+    ["05","사람을 통한 감사","빌립보서 1:3","https://noemisuh.tistory.com/entry/thanks-through-people"],
+    ["06","감사의 관계","골로새서 3:15","https://noemisuh.tistory.com/entry/thanks-relationship"],
+    ["07","용서로 드리는 감사","에베소서 4:32","https://noemisuh.tistory.com/entry/thanks-in-forgiveness"],
+    ["08","가족 안의 감사","여호수아 24:15","https://noemisuh.tistory.com/entry/thanks-family"],
+    ["09","함께 걸어가는 감사","전도서 4:9-10","https://noemisuh.tistory.com/entry/thanks-together"],
+    ["10","주님의 인도","시편 23:1","https://noemisuh.tistory.com/entry/guidance-ps23"],
+    ["14","임마누엘의 약속","마태복음 1:23","https://noemisuh.tistory.com/entry/immanuel-14"],
+    ["21","주의 선하심","시편 34:8","https://noemisuh.tistory.com/entry/taste-and-see"],
+    ["28","은혜의 기억","시편 103:2","https://noemisuh.tistory.com/entry/memory-of-grace-28"]
+  ],
+  "2025-11:es": [
+    ["01","Comienza con gratitud","Salmo 100:4","https://gloriadios-es.tistory.com/entry/accion-de-gracias-1"],
+    ["07","Acción de gracias en el perdón","Efesios 4:32","https://gloriadios-es.tistory.com/entry/gracia-del-perdon"],
+    ["14","La promesa de Emanuel","Mateo 1:23","https://gloriadios-es.tistory.com/entry/emmanuel-14"],
+    ["21","Bondad del Señor","Salmo 34:8","https://gloriadios-es.tistory.com/entry/probad-y-ved"],
+    ["28","Memoria de la gracia","Salmo 103:2","https://gloriadios-es.tistory.com/entry/memoria-de-gracia-28"]
+  ]
+}
+</script>
+
+<script>
+/* JSON 블록을 window.SOW_EMBED_DATA로 로드 */
+(function(){
+  try{
+    var raw=document.getElementById('SOW_EMBED_DATA').textContent.trim();
+    window.SOW_EMBED_DATA=JSON.parse(raw);
+  }catch(e){
+    window.SOW_EMBED_DATA={};
+    console.error('내장 데이터 파싱 오류:', e);
+  }
+})();
+</script>
+
+</body>
+</html>
