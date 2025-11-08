@@ -417,5 +417,35 @@ h1#page-title,h1.page-title{display:none!important}
 })();
 </script>
 
+<script>
+const SUPPORTED_LANGS = ["ko","zh","es","en"];
+const DEFAULT_LANG = "ko";
+function detectLang(){
+  const u = new URLSearchParams(location.search).get("lang");
+  const s = localStorage.getItem("sow.lang");
+  const h = (document.documentElement.lang||"").slice(0,2).toLowerCase();
+  return [u,s,h,DEFAULT_LANG].find(x => SUPPORTED_LANGS.includes(x)) || DEFAULT_LANG;
+}
+window.CUR_LANG = detectLang();
+localStorage.setItem("sow.lang", window.CUR_LANG);
+
+// DATA = { ko:{'2025-11-01':'...'}, zh:{...}, ... } 가 이미 로드되어 있다고 가정
+function getTitle(key){
+  const L = window.CUR_LANG, P = DEFAULT_LANG;
+  return (DATA[L] && DATA[L][key])
+      || (DATA[P] && DATA[P][key])
+      || ((Object.values(DATA).find(m => m && m[key])) || {})[key]
+      || "";
+}
+function switchLang(lang){
+  if (!SUPPORTED_LANGS.includes(lang)) return;
+  window.CUR_LANG = lang;
+  localStorage.setItem("sow.lang", lang);
+  const u = new URL(location.href);
+  u.searchParams.set("lang", lang);
+  history.replaceState(null,"",u.toString());
+  buildCalendar(CURRENT_YEAR, CURRENT_MONTH); // 달력 재렌더
+}
+</script>
 </body>
 </html>
