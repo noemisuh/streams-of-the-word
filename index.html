@@ -39,31 +39,56 @@ a.cellbox:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);border-color:var(--accent)
   .cellbox{background:rgba(56,189,248,.12)}
   .dnum-badge{background:#0f1720;border-color:#334155;color:#9ca3af}
 }
-.site-nav{background:#0f172a;color:#fff;position:sticky;top:0;z-index:20}
+
+/* ===== 상단 네비: 단일 다크 스타일 최종본 ===== */
+.site-nav{background:#0f172a;color:#fff;position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.08)}
 .site-nav nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:12px}
 .site-nav a{color:#fff;text-decoration:none;opacity:.9;padding:4px 6px;border-radius:8px}
 .site-nav a:hover,.site-nav a:focus{opacity:1;text-decoration:underline}
 .site-nav a[aria-current="page"]{opacity:1;background:rgba(255,255,255,.12)}
-.site-nav .sep{opacity:.35}
+.site-nav .sep{margin:0 6px;opacity:.35}
 .site-nav small{opacity:.8;font-size:.9em}
+.site-nav .group .label{font-weight:600;margin-right:4px}
+.site-nav .inline-links{font-size:.95em;opacity:.85}
+
 h1#page-title,h1.page-title{display:none!important}
 .topbar,.header,#title-wrap{overflow:visible!important;height:auto!important}
 </style>
 </head>
 <body>
+  
 <header class="site-nav" role="navigation" aria-label="사이트 공통 메뉴">
   <nav>
     <a href="https://noemisuh.github.io/faith-scripture/">믿음으로 쓰는 성경</a>
     <span class="sep" aria-hidden="true">|</span>
+
     <a href="https://noemisuh.github.io/faith-bible-copy/">필사 성경</a>
     <span class="sep" aria-hidden="true">|</span>
-    <a href="https://noemisuh.github.io/streams-of-the-word/">말씀따라 흐르는 샘물</a>
-    <span class="sep" aria-hidden="true">|</span>
-    <span id="blog-span" aria-label="블로그 바로가기">블로그
-      <small>( <a id="tistory-link" href="#" target="_blank" rel="noopener">Tistory</a> | <a id="naver-link" href="https://blog.naver.com/noemisuh/224058295053" target="_blank" rel="noopener">Naver</a> )</small>
+
+    <!-- 말씀따라 흐르는 샘물 (언어 묶음) -->
+    <span class="group">
+      <a class="label" href="https://noemisuh.github.io/streams-of-the-word/">말씀따라 흐르는 샘물</a>
+      <small class="inline-links" aria-label="Streams of the Word languages">
+        ( <a href="https://noemisuh.github.io/streams-of-the-word/?lang=ko">한국어</a>
+        <span class="sep">ㅣ</span>
+        <a href="https://noemisuh.github.io/streams-of-the-word/?lang=en">English</a>
+        <span class="sep">ㅣ</span>
+        <a href="https://noemisuh.github.io/streams-of-the-word/?lang=es">Español</a>
+        <span class="sep">ㅣ</span>
+        <a href="https://noemisuh.github.io/streams-of-the-word/?lang=zh">中文</a> )
+      </small>
     </span>
-    <span id="lang-switch" style="margin-left:8px;opacity:.85">
-      <a href="#" data-lang="ko">한국어</a> | <a href="#" data-lang="es">Español</a> | <a href="#" data-lang="en">English</a> | <a href="#" data-lang="zh">中文</a>
+
+    <span class="sep" aria-hidden="true">|</span>
+
+    <!-- 블로그 (네이버 ㅣ 티스토리) -->
+    <span class="group">
+      <span class="label">블로그</span>
+      <small class="inline-links" aria-label="Blogs">
+        ( <a href="https://blog.naver.com/noemisuh" target="_blank" rel="noopener">네이버</a>
+        <span class="sep">ㅣ</span>
+        <a href="https://noemisuh.tistory.com" target="_blank" rel="noopener">티스토리</a> )
+      </small>
     </span>
   </nav>
 </header>
@@ -154,18 +179,6 @@ h1#page-title,h1.page-title{display:none!important}
     location.href=nu.toString();
   }
 
-  // 상단 네비 텍스트
-  try{
-    var aRoot=document.querySelector('.site-nav a[href*="faith-scripture"]');
-    var aCopy=document.querySelector('.site-nav a[href*="faith-bible-copy"]');
-    var aStreams=document.querySelector('.site-nav a[href*="streams-of-the-word"]');
-    var spanBlog=document.getElementById('blog-span');
-    if(aRoot) aRoot.textContent=I.nav.root;
-    if(aCopy) aCopy.textContent=I.nav.copy;
-    if(aStreams) aStreams.textContent=I.nav.streams;
-    if(spanBlog){ var small=spanBlog.querySelector('small'); spanBlog.textContent=I.nav.blog+" "; if(small) spanBlog.appendChild(small); }
-  }catch(_){}
-
   // 요일 헤더
   var head=document.getElementById('weekday-head'); if(head){ head.innerHTML=''; I.daysShort.forEach(function(d){var dv=document.createElement('div'); dv.textContent=d; head.appendChild(dv);});}
 
@@ -236,24 +249,6 @@ h1#page-title,h1.page-title{display:none!important}
     setPageTitle(y,m);
   }
 
-  // 언어 스위처
-  (function setupLangSwitch(){
-    var box=document.getElementById('lang-switch'); if(!box) return;
-    box.addEventListener('click',function(e){
-      var a=e.target.closest('a[data-lang]'); if(!a) return;
-      e.preventDefault();
-      var newLang=a.getAttribute('data-lang');
-      try{localStorage.setItem('sow_lang',newLang);}catch(_){}
-      var nu=new URL(location.href); nu.searchParams.set('lang',newLang); nu.searchParams.set('v',Date.now()); location.href=nu.toString();
-    });
-  })();
-
-  // Tistory 링크 언어별
-  (function(){
-    var TISTORY={ko:"https://noemisuh.tistory.com/category/%EC%8B%9C%EC%99%80%20%EA%B3%A0%EB%B0%B1", es:"https://gloriadios-es.tistory.com", en:"https://noemisuh.tistory.com", zh:"https://noemisuh.tistory.com"};
-    var t=document.getElementById('tistory-link'); if(t){ t.href=TISTORY[lang]||TISTORY.ko; t.target="_blank"; t.rel="noopener"; }
-  })();
-
   // 렌더
   render();
 })();
@@ -263,8 +258,8 @@ h1#page-title,h1.page-title{display:none!important}
 /* JSON 블록을 window.SOW_EMBED_DATA로 로드 */
 (function(){
   try{
-    var raw=document.getElementById('SOW_EMBED_DATA').textContent.trim();
-    window.SOW_EMBED_DATA=JSON.parse(raw);
+    var raw=document.getElementById('SOW_EMBED_DATA')?.textContent?.trim() || '';
+    window.SOW_EMBED_DATA = raw ? JSON.parse(raw) : {};
   }catch(e){
     window.SOW_EMBED_DATA={};
     console.error('내장 데이터 파싱 오류:', e);
