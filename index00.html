@@ -110,37 +110,105 @@ h1#page-title, h1.page-title { display:none !important; }
 
 /* 연/월 화살표 크게 */
 .year-nav button, .year-nav .arrow{ font-size:1.25rem; padding:0 .4em; line-height:1.1; }
+
+  
+/* ===== 네비 크기/균형 조정 ===== */
+.site-nav{background:#0f172a;color:#fff;position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.08)}
+.site-nav nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:12px 16px}
+.site-nav a{color:#fff;text-decoration:none;opacity:.9;padding:4px 8px;border-radius:10px}
+.site-nav a:hover,.site-nav a:focus{opacity:1;text-decoration:underline}
+.site-nav .group .label{font-weight:600;margin-right:4px;font-size:.95rem} /* [2] 네비의 '말씀따라 흐르는 샘물' 글자 작게 */
+.site-nav .inline-links{font-size:.95rem;opacity:.85}
+.site-nav .pill{background:rgba(255,255,255,.12);font-weight:600}
+
+/* ===== 페이지/컨테이너 여백 확장 (잘림 방지) ===== */
+.page-wrap,.calendar-wrap,.container{
+  max-width:1200px; margin:24px auto; padding:0 24px;
+}
+
+/* ===== 달력 상단 타이틀/연-월 화살표 중앙 정렬 & 2배 확대 ===== */
+.cal-head{
+  display:flex; align-items:center; justify-content:center; gap:16px;
+  margin:14px 0 18px 0;
+}
+.cal-head .title{
+  font-size:2rem; font-weight:800; letter-spacing:.3px; /* [4] 타이틀 2배 */
+}
+.cal-head .year-nav button, .cal-head .year-nav .btn{
+  font-size:1.75rem; line-height:1; padding:4px 10px; border-radius:12px;
+}
+.cal-head .year-label{font-size:1.5rem; font-weight:700}
+.cal-head + .weekdays{ margin-top:14px; } /* [4] 타이틀 아래 한 칸 여백 */
+
+/* ===== 요일 헤더(월화수...) 좌우/상하 여백 넓힘 ===== */
+.weekdays{
+  display:grid; grid-template-columns:repeat(7,1fr); gap:10px;  /* [3] 칸 사이 간격 증가 */
+  margin-bottom:8px;
+}
+.weekdays span, .weekdays th{
+  text-align:center; padding:10px 6px; font-weight:700; border-radius:10px;
+  background:var(--bgsoft, #f8fafc);
+}
+
+/* ===== 개별 날짜 셀: 잘림/클릭 문제 해결 ===== */
+.cal-grid{ display:grid; grid-template-columns:repeat(7,1fr); gap:10px; }
+.cal-cell{
+  min-height:116px; /* [5] 세로 여유 */
+  padding:10px; border:1px solid var(--line, #e5e7eb); border-radius:12px;
+  background:#eef6fb; overflow:visible; position:relative;
+}
+
+/* 셀 안 링크가 클릭되지 않는 문제: 어떤 오버레이가 클릭을 막는 경우를 차단 */
+.cal-cell::after{ pointer-events:none; }
+.cal-cell *{ pointer-events:auto; }
+.cal-cell a{ display:block; position:relative; z-index:1; }
+
+/* 모바일 안전 여백 */
+@media (max-width: 640px){
+  .site-nav nav{gap:8px;padding:10px}
+  .cal-head .title{font-size:1.6rem}
+  .cal-head .year-nav button{font-size:1.4rem}
+  .cal-cell{min-height:100px}
+}
+
 </style>
 </head>
   
 <body>
+<!-- ===== 상단 네비: 통합 버전 ===== -->
 <header class="site-nav" role="navigation" aria-label="Global">
   <nav>
-    <!-- 브랜드 + 언어 묶음 -->
+    <!-- 브랜드/섹션 라벨: 글자 작게(다른 항목과 균형) -->
     <span class="group">
-      <span class="brand">말씀따라 흐르는 샘물</span>
+      <span class="label">말씀따라 흐르는 샘물</span>
       <small class="inline-links" aria-label="Streams of the Word languages">
-        ( <a data-lang="ko" href="#">한국어</a>
+        ( <a data-lang="ko" href="?lang=ko">한국어</a>
         <span class="sep">ㅣ</span>
-        <a data-lang="en" href="#">English</a>
+        <a data-lang="en" href="?lang=en">English</a>
         <span class="sep">ㅣ</span>
-        <a data-lang="es" href="#">Español</a>
+        <a data-lang="es" href="?lang=es">Español</a>
         <span class="sep">ㅣ</span>
-        <a data-lang="zh" href="#">中文</a> )
+        <a data-lang="zh" href="?lang=zh">中文</a> )
       </small>
     </span>
 
-    <span class="sep" aria-hidden="true">|</span>
+    <span class="sep">|</span>
 
-    <!-- 블로그 묶음 -->
+    <!-- 블로그(네이버/티스토리) -->
     <span class="group">
       <span class="label">블로그</span>
-      <small class="inline-links" aria-label="Blogs">
-        ( <a href="https://blog.naver.com/noemisuh">네이버</a>
+      <small class="inline-links">
+        ( <a href="https://blog.naver.com/noemisuh" target="_blank" rel="noopener">네이버</a>
         <span class="sep">ㅣ</span>
-        <a href="https://noemisuh.tistory.com/">티스토리</a> )
+        <a href="https://noemisuh.tistory.com" target="_blank" rel="noopener">티스토리</a> )
       </small>
     </span>
+
+    <span class="sep">|</span>
+
+    <!-- 사라진 메뉴 복구 -->
+    <a class="pill" href="https://noemisuh.github.io/faith-bible-copy/">믿음으로 쓰는 성경</a>
+    <a class="pill" href="https://noemisuh.github.io/faith-bible-copy/">필사 성경</a>
   </nav>
 </header>
 
@@ -365,6 +433,58 @@ h1#page-title, h1.page-title { display:none !important; }
   renderGrid();
   wireLangLinks();
   loadExternal();
+})();
+</script>
+  
+  <script>
+/* ===== 1) 언어 파라미터로 데이터 전환 (404 방지) ===== */
+(function(){
+  const params = new URLSearchParams(location.search);
+  const lang = (params.get('lang') || 'es').toLowerCase(); // 기본 스페인어
+  document.documentElement.setAttribute('data-lang', lang);
+
+  // (예시) 언어별 제목/라벨 바꾸기
+  const titleMap = {
+    ko: '말씀따라 흐르는 샘물',
+    en: 'Streams of the Word',
+    es: 'Riachuelos de la Palabra',
+    zh: '话语之溪'
+  };
+  const titleEl = document.querySelector('.cal-head .title');
+  if (titleEl && titleMap[lang]) titleEl.textContent = titleMap[lang];
+
+  // (선택) 언어별 데이터 로딩 훅
+  // window.loadCalendar(lang);  // 이미 있는 함수가 있으면 파라미터로 언어 전달
+})();
+
+/* ===== 2) 달력 제목/연도 화살표 가운데 정렬 보정 ===== */
+(function(){
+  const head = document.querySelector('.cal-head');
+  if(!head){
+    // 없으면 만들어 주기(안전)
+    const wrap = document.querySelector('.calendar-wrap') || document.body;
+    const h = document.createElement('div');
+    h.className = 'cal-head';
+    h.innerHTML = `
+      <button class="btn prev-year" aria-label="Prev Year">◀</button>
+      <span class="title">Riachuelos de la Palabra</span>
+      <span class="year-nav">
+        <span class="year-label" id="yearLabel">2025</span>
+      </span>
+      <button class="btn next-year" aria-label="Next Year">▶</button>
+    `;
+    wrap.prepend(h);
+  }
+})();
+
+/* ===== 3) 셀 안 "달력 제목 링크"가 안 먹는 경우 보정 ===== */
+(function(){
+  // a 태그가 있어도 상위가 클릭을 막는 경우를 해제
+  document.querySelectorAll('.cal-cell a').forEach(a=>{
+    a.addEventListener('click', (e)=>{
+      e.stopPropagation(); // 상위 그리드 클릭 핸들러 차단
+    }, true);
+  });
 })();
 </script>
 </body>
