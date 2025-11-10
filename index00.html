@@ -111,7 +111,6 @@ h1#page-title, h1.page-title { display:none !important; }
 /* 연/월 화살표 크게 */
 .year-nav button, .year-nav .arrow{ font-size:1.25rem; padding:0 .4em; line-height:1.1; }
 
-  
 /* ===== 네비 크기/균형 조정 ===== */
 .site-nav{background:#0f172a;color:#fff;position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.08)}
 .site-nav nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:12px 16px}
@@ -171,6 +170,27 @@ h1#page-title, h1.page-title { display:none !important; }
   .cal-cell{min-height:100px}
 }
 
+/* ==== 달력 헤더 중앙 정렬 & 여백 ==== */
+.cal-head{
+  display:grid;
+  grid-template-columns:1fr auto 1fr; /* ◀  [제목+연도]  ▶ */
+  align-items:center;
+  gap:12px;
+  margin:12px 0 18px;                 /* 제목 아래 여백 1칸 */
+}
+.cal-head .prev-year{ justify-self:end;  font-size:1.75rem; }
+.cal-head .next-year{ justify-self:start;font-size:1.75rem; }
+.cal-head .title-wrap{                 /* 가운데 묶음 */
+  grid-column:2; display:flex; align-items:baseline; gap:10px;
+}
+.cal-head .title{ font-size:2rem; font-weight:800; }
+.cal-head .year-label{ font-size:1.5rem; font-weight:700; }
+
+/* 혹시 남아있는 예전 제목(중복 표시) 숨김 */
+h1#page-title, h1.page-title, .cal-title-legacy{ display:none !important; }
+
+/* 요일줄과 붙는 느낌 방지(여유) */
+.weekdays{ margin-top:8px; }  
 </style>
 </head>
   
@@ -485,6 +505,39 @@ h1#page-title, h1.page-title { display:none !important; }
       e.stopPropagation(); // 상위 그리드 클릭 핸들러 차단
     }, true);
   });
+})();
+</script>
+    
+<script>
+/* ==== 중복 제목 제거 & 가운데 묶음 보정 ==== */
+(function(){
+  // 예전 헤더가 두 번 생겼으면 하나만 남기기
+  const heads = document.querySelectorAll('.cal-head');
+  if (heads.length > 1) { for (let i=1;i<heads.length;i++) heads[i].remove(); }
+
+  // 레거시 h1 숨김(중복 방지)
+  const legacy = document.querySelector('h1#page-title, h1.page-title, .cal-title-legacy');
+  if (legacy) legacy.style.display = 'none';
+
+  // 가운데 묶음(title + year)을 감싸는 요소가 없으면 생성
+  const head = document.querySelector('.cal-head');
+  if (head && !head.querySelector('.title-wrap')) {
+    const title = head.querySelector('.title') || (()=>{const s=document.createElement('span');s.className='title';s.textContent='Streams';return s;})();
+    let yearNav = head.querySelector('.year-nav');
+    if (!yearNav) {
+      yearNav = document.createElement('span');
+      yearNav.className = 'year-nav';
+      const yl = document.createElement('span'); yl.id='yearLabel'; yl.className='year-label'; yl.textContent = (new Date()).getFullYear();
+      yearNav.appendChild(yl);
+    }
+    const wrap = document.createElement('div'); wrap.className = 'title-wrap';
+    wrap.appendChild(title);
+    wrap.appendChild(yearNav);
+    // 가운데(두 번째 칸)에 넣기
+    const afterPrev = head.querySelector('.prev-year');
+    if (afterPrev) head.insertBefore(wrap, afterPrev.nextSibling);
+    else head.prepend(wrap);
+  }
 })();
 </script>
 </body>
