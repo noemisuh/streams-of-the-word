@@ -53,6 +53,91 @@ a.cellbox:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);border-color:var(--accent)
 
 h1#page-title,h1.page-title{display:none!important}
 .topbar,.header,#title-wrap{overflow:visible!important;height:auto!important}
+
+/* ===== 공통 변수 ===== */
+:root{
+  --gap: 10px;         /* 달력 셀 간격 */
+  --cell-h: 118px;     /* 달력 셀 높이 (110~140px 사이 취향대로) */
+  --head-h: 38px;      /* 요일 헤더 높이 */
+}
+
+/* ===== 레이아웃 래퍼 ===== */
+.wrap{padding:16px}
+.wrap, .wrap *{ box-sizing: border-box; } /* 넘침 방지 */
+
+/* ===== 상단 영역 ===== */
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:14px 0 10px}
+.brand{font-weight:700;font-size:1.15rem;display:flex;align-items:center;gap:8px}
+.brand .dot{width:10px;height:10px;border-radius:999px;background:#0ea5e9;display:inline-block}
+.yearbar{margin-left:auto;display:flex;align-items:center;gap:12px;font-weight:600}
+.yearbar a{color:#0f172a;text-decoration:none;border:1px solid #e5e7eb;border-radius:8px;padding:2px 8px}
+.monthbar{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+.monthbar a{padding:4px 8px;border-radius:8px;text-decoration:none;border:1px solid #e5e7eb;color:#0f172a}
+.monthbar a[aria-current="true"]{background:#0ea5e9;color:#fff;border-color:#0ea5e9}
+
+/* ===== 달력 전체 래퍼 ===== */
+.cal{margin-top:10px}
+
+/* 요일 헤더: 7등분 그리드 + 고정 높이 */
+.cal .head{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr));
+  gap: var(--gap);
+  height: var(--head-h);
+  align-items:center;
+  font-weight:700;
+  text-align:center;
+  color:#0f172a;
+}
+
+/* 그리드 본문: 7등분, 자동 행 높이 = 고정 셀 높이 */
+.cal .grid{
+  display:grid;
+  grid-template-columns:repeat(7,minmax(0,1fr)); /* 정확히 7등분 */
+  gap: var(--gap);
+  width:100%;
+}
+
+/* 각 날짜 셀: .grid의 모든 직접 자식을 셀로 취급 */
+.cal .grid > *{
+  min-width:0;                 /* 긴 텍스트로 옆으로 밀리지 않게 */
+  height: var(--cell-h);       /* 행 높이 고정 (줄 흔들림 방지) */
+  padding:10px;
+  border:1px solid #e5e7eb;
+  border-radius:12px;
+  background:#fff;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  overflow:hidden;             /* 넘치는 내용 숨김 */
+}
+
+/* 날짜 숫자(있다면) */
+.cal .grid > * .day-badge{font-size:.85rem;opacity:.7}
+
+/* 제목: 2줄까지만 보이고 말줄임 */
+.cal .grid > * .title,
+.cal .grid > * h4,
+.cal .grid > * a.title{
+  margin-top:6px;
+  line-height:1.2;
+  display:-webkit-box;
+  -webkit-box-orient:vertical;
+  -webkit-line-clamp:2;  /* 2줄까지만 */
+  overflow:hidden;
+  word-break:keep-all;    /* 한/중 자연스러운 줄바꿈 */
+  overflow-wrap:anywhere; /* 영어 긴 단어 강제 줄바꿈 허용 */
+}
+
+/* 마지막 열 잘림 방지: 바깥 래퍼가 숨기지 않도록 */
+.cal, .wrap{ overflow:visible; }
+
+/* ===== 반응형(모바일 살짝 여유) ===== */
+@media (max-width: 480px){
+  :root{ --gap:8px; --cell-h:110px; --head-h:34px; }
+  .wrap{padding:12px}
+  .monthbar{gap:6px}
+}
 </style>
 </head>
 <body>
