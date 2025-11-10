@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>말씀따라 흐르는 샘물</title>
+<meta name="color-scheme" content="light dark" />
+
+<style>
+/* ===================== 기본 컬러/타이포 ===================== */
+:root{--fg:#111827;--muted:#6b7280;--line:#e5e7eb;--line-strong:#cbd5e1;--accent:#0ea5e9;--bg:#ffffff;--box:#ffffff;--bgsoft:#f8fafc}
+@media (prefers-color-scheme: dark){
+  :root{--fg:#e5e7eb;--muted:#9ca3af;--line:#334155;--line-strong:#475569;--accent:#38bdf8;--bg:#0b0f14;--box:#0f1720;--bgsoft:#0f1720}
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+a{color:#0ea5e9}
+
+/* ===================== 레이아웃 ===================== */
+.wrap{max-width:1080px;margin:0 auto;padding:16px}
+.top{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:14px 0 10px}
+.brand{font-weight:700;font-size:1.15rem;display:flex;align-items:center;gap:8px}
+.brand .dot{width:10px;height:10px;border-radius:999px;background:#0ea5e9;display:inline-block}
+.yearbar{display:flex;align-items:center;gap:12px;font-weight:600}
+.yearbar a{color:#0f172a;text-decoration:none;border:1px solid #e5e7eb;border-radius:8px;padding:2px 8px}
+.monthbar{display:flex;flex-wrap:wrap;gap:8px;width:100%}
+.monthbar a{padding:4px 8px;border-radius:8px;text-decoration:none;border:1px solid #e5e7eb;color:#0f172a}
+.monthbar a.active{background:#0ea5e9;color:#fff;border-color:#0ea5e9}
+
+/* 달력 */
+.cal{margin-top:10px;border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;background:var(--box)}
+.cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--bgsoft)}
+.cal .head div{padding:10px 8px;text-align:center;font-weight:700;color:var(--muted)}
+.grid{display:grid;grid-template-columns:repeat(7,1fr)}
+.cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px;position:relative}
+.grid .cell:nth-child(7n){border-right:none}
+
+/* 캘 셀 카드 */
+.cellbox{position:relative;display:flex;flex-direction:column;width:100%;min-height:140px;padding:28px 16px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(14,165,233,.10);text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s,background .15s}
+a.cellbox:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);border-color:var(--accent);background:rgba(14,165,233,.14)}
+.dnum-badge{position:absolute;left:10px;top:10px;z-index:3;font-size:12px;color:var(--muted);padding:2px 6px;border:1px solid var(--line);border-radius:8px;background:var(--box)}
+.center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px 4px}
+.title-center{max-width:100%;font-size:16px;line-height:1.4;white-space:normal;word-break:keep-all;text-wrap:balance;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;margin:0}
+.ref{margin-top:8px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (prefers-color-scheme: dark){
+  .cellbox{background:rgba(56,189,248,.12)}
+  .dnum-badge{background:#0f1720;border-color:#334155;color:#9ca3af}
+}
+
+/* ===================== 상단 네비(공통) ===================== */
+.site-nav{background:#0f172a;color:#fff;position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.08)}
+.site-nav nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:12px}
+.site-nav a{color:#fff;text-decoration:none;opacity:.9;padding:4px 6px;border-radius:8px}
+.site-nav a:hover,.site-nav a:focus{opacity:1;text-decoration:underline}
+.site-nav a[aria-current="page"]{opacity:1;background:rgba(255,255,255,.12)}
+.site-nav .sep{margin:0 6px;opacity:.35}
+.site-nav small{opacity:.8;font-size:.9em}
+.site-nav .group .label{font-weight:600;margin-right:4px}
+.site-nav .inline-links{font-size:.95em;opacity:.85}
+
+/* ===================== 요구사항 1,3 적용 ===================== */
+/* (1) 페이지 제목들 전부 감춤(중복 제거) */
+h1#site-title, h1#calendar-title, .page-heading, h1.page-title, #page-title, .calendar-title {
+  display:none !important;
+}
+/* (1) 년도 화살표 가운데 배치 */
+.top .yearbar { margin-left:0 !important; justify-content:center !important; }
+
+/* (3) 네비의 “말씀따라 흐르는 샘물”은 클릭 불가(모양 그대로) */
+a[href*="streams-of-the-word"]{
+  pointer-events:none; cursor:default; text-decoration:none; opacity:1;
+}
+
+/* 반응형 */
+:root{ --gap: 10px; --cell-h: 118px; --head-h: 38px; }
+.cal .head{ gap:var(--gap); height:var(--head-h); align-items:center; font-weight:700; text-align:center; color:#0f172a; }
+.cal .grid{ grid-template-columns:repeat(7,minmax(0,1fr)); gap:var(--gap); width:100%; }
+.cal .grid > *{ min-width:0; height:var(--cell-h); padding:10px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; }
+@media (max-width:480px){ :root{ --gap:8px; --cell-h:110px; --head-h:34px; } .wrap{padding:12px} .monthbar{gap:6px} }
+
+ /* ── 상단 네비: 언어/블로그 ( ) 안 링크 간격 타이트하게 ── */
+.site-nav .inline-links a{
+  padding: 0 2px !important;   /* 기존 4px 6px → 2px */
+  margin: 0 !important;
+}
+.site-nav .inline-links .sep{
+  margin: 0 3px !important;    /* 기존 6px → 3px */
+  opacity: .45;                 /* 구분선은 살짝 옅게 */
+}
+/* 그룹들 사이 | 구분자도 살짝 타이트 */
+.site-nav > nav > .sep{
+  margin: 0 4px !important;    /* 전체 그룹 구분자 간격 축소 */
+} 
+
+ /* === 상단 네비: ( ) 안 언어/블로그 링크 간격 '확실히' 좁히기 === */
+.site-nav small.inline-links{
+  display: inline-flex;        /* 인라인처럼 보이되, 요소 간 여백 제어 */
+  align-items: center;
+  gap: 0;                      /* gap으로 생길 여백 없음 */
+  font-size: 0;                /* 괄호와 줄바꿈 사이 공백 문자 폭 0으로 */
+}
+
+.site-nav small.inline-links a,
+.site-nav small.inline-links .sep {
+  font-size: .95rem;           /* 실제 글자 크기 복원 */
+  line-height: 1;
+}
+
+/* 링크 여백 최소화: 기본 a padding을 덮어씀 */
+.site-nav small.inline-links a{
+  padding: 0 2px !important;   /* 핵심: 좌우 2px */
+  margin: 0 !important;
+}
+
+/* 구분자(ㅣ) 좌우 여백도 축소 */
+.site-nav small.inline-links .sep{
+  margin: 0 3px !important;    /* 필요하면 2px로 더 줄일 수 있음 */
+  opacity: .5;
+}
+
+/* 그룹들 사이의 '|' 구분자 간격도 살짝 축소 */
+.site-nav > nav > .sep{
+  margin: 0 4px !important;
+} 
+
+  /* 상단 제목(H1) 전부 숨김 */
+#title-wrap,
+h1#page-title,
+h1.page-title,
+.calendar-title,
+.page-heading{
+  display:none !important;
+}
+
+ /* top 레이아웃 정렬 고정 */
+.top{ display:flex; flex-wrap:wrap; }
+
+/* 년도 바를 한 줄 전체로 + 중앙 정렬 */
+.top .yearbar{
+  order: 2;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  margin-left: 0 !important; /* 기존 오른쪽 밀기 제거 */
+}
+
+/* 브랜드(제목 아이콘 줄) → 첫 줄 */
+.top .brand{ order:1; }
+
+/* 월 바 → 세 번째 줄 */
+.top .monthbar{ order:3; width:100%; } 
+
+ #title-wrap, h1#page-title, h1.page-title, .calendar-title, .page-heading{
+  display:none !important;
+}
+
+  .top{display:flex;flex-wrap:wrap;}
+.top .yearbar{
+  order:2;width:100%!important;display:flex!important;
+  justify-content:center!important;align-items:center;gap:12px;
+  margin:8px 0;margin-left:0!important;
+}
+.top .brand{order:1;}
+.top .monthbar{order:3;width:100%;}
+
+  .site-nav small.inline-links{display:inline-flex;align-items:center;gap:0;font-size:0;}
+.site-nav small.inline-links a,
+.site-nav small.inline-links .sep{font-size:.95rem;line-height:1;}
+.site-nav small.inline-links a{padding:0 2px!important;margin:0!important;}
+.site-nav small.inline-links .sep{margin:0 3px!important;opacity:.5;}
+.site-nav>nav>.sep{margin:0 4px!important;}
+</style>
+</head>
+<body>
+
+<!-- ===================== 상단 네비 ===================== -->
+<header class="site-nav" role="navigation" aria-label="사이트 공통 메뉴">
+  <nav>
+    <a href="https://noemisuh.github.io/faith-scripture/">믿음으로 쓰는 성경</a>
+    <span class="sep" aria-hidden="true">|</span>
+
+    <a href="https://noemisuh.github.io/faith-bible-copy/">필사 성경</a>
+    <span class="sep" aria-hidden="true">|</span>
+
+ <span class="group">
+      <span class="brand">말씀따라 흐르는 샘물</span>
+      <small class="inline-links" aria-label="Streams of the Word languages">
+        ( <a data-lang="ko" href="#">한국어</a>
+        <span class="sep">ㅣ</span>
+        <a data-lang="en" href="#">English</a>
+        <span class="sep">ㅣ</span>
+        <a data-lang="es" href="#">Español</a>
+        <span class="sep">ㅣ</span>
+        <a data-lang="zh" href="#">中文</a> )
+      </small>
+    </span>
+
+    <span class="sep" aria-hidden="true">|</span>
+
+    <!-- 블로그 묶음 -->
+    <span class="group">
+      <span class="label">블로그</span>
+      <small class="inline-links" aria-label="Blogs">
+        ( <a href="https://blog.naver.com/noemisuh">네이버</a>
+        <span class="sep">ㅣ</span>
+        <a href="https://noemisuh.tistory.com/">티스토리</a> )
+      </small>
+    </span>
+  </nav>
+</header>
+
+<!-- ===================== 상단 영역/달력 ===================== -->
+<div class="wrap">
+  <section class="top" aria-label="상단">
+    <div class="brand"><span class="dot" aria-hidden="true"></span><span>말씀따라 흐르는 샘물</span></div>
+    <nav class="yearbar" aria-label="년도">
+      <a id="prevYear" href="#" aria-label="이전 해">◀</a>
+      <span class="yr" id="yearLabel">0000</span>
+      <a id="nextYear" href="#" aria-label="다음 해">▶</a>
+    </nav>
+    <nav class="monthbar" id="monthbar" aria-label="월"></nav>
+  </section>
+
+  <section class="cal" aria-label="달력">
+    <div class="head" id="weekday-head"><div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div></div>
+    <div id="grid" class="grid" role="grid" aria-label="달력 그리드"></div>
+  </section>
+</div>
+
+<!-- (선택) 내장 데이터 JSON을 넣고 싶다면 아래 스크립트 태그에 JSON을 넣으세요.
+<script id="SOW_EMBED_DATA" type="application/json">
+{ "2025-11:ko":[["01","제목","본문","https://..."]] }
+</script>
+-->
+
+<script>
+/* ===================== 다국어/렌더/데이터 로더 — 단일 스크립트 ===================== */
+(function(){
+  /* I18N */
+  var I18N = {
+    ko:{ brand:"말씀따라 흐르는 샘물", daysShort:["일","월","화","수","목","금","토"],
+         monthsShort:["1월","2월","3월","4월","5월","6월","7월","8월","9월","10월","11월","12월"],
+         monthsFull:["1","2","3","4","5","6","7","8","9","10","11","12"],
+         title:(y,m)=>`${y}년 ${m}월` },
+    es:{ brand:"Riachuelos de la Palabra", daysShort:["Dom","Lun","Mar","Mié","Jue","Vie","Sáb"],
+         monthsShort:["Ene","Feb","Mar","Abr","May","Jun","Jul","Ago","Sep","Oct","Nov","Dic"],
+         monthsFull:["enero","febrero","marzo","abril","mayo","junio","julio","agosto","septiembre","octubre","noviembre","diciembre"],
+         title:(y,mname)=>`${mname} de ${y}` },
+    en:{ brand:"Streams of the Word", daysShort:["Sun","Mon","Tue","Wed","Thu","Fri","Sat"],
+         monthsShort:["Jan","Feb","Feb","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"].map((v,i)=>["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"][i]),
+         monthsFull:["January","February","March","April","May","June","July","August","September","October","November","December"],
+         title:(y,mname)=>`${mname} ${y}` },
+    zh:{ brand:"话语之溪流", daysShort:["日","一","二","三","四","五","六"],
+         monthsShort:["1月","2月","3月","4月","5月","6月","7月","8月","9月","10月","11月","12月"],
+         monthsFull:["一月","二月","三月","四月","五月","六月","七月","八月","九月","十月","十一月","十二月"],
+         title:(y,mname)=>`${y}年${mname}` }
+  };
+
+  /* 파라미터 */
+  var now=new Date();
+  var url=new URL(location.href);
+  var qLang=(url.searchParams.get('lang')||'').toLowerCase();
+  var saved=localStorage.getItem('sow_lang')||'';
+  var lang=qLang||saved||'ko'; if(!I18N[lang]) lang='ko';
+  try{ localStorage.setItem('sow_lang',lang); }catch(e){}
+  document.documentElement.lang=lang;
+  var I=I18N[lang];
+
+  var y=parseInt(url.searchParams.get('y')||now.getFullYear(),10);
+  var m=parseInt(url.searchParams.get('m')||now.getMonth()+1,10);
+  if(!(y>=1900&&y<=9999)) y=now.getFullYear();
+  if(!(m>=1&&m<=12)) m=now.getMonth()+1;
+
+  /* 상단 UI */
+  var yLabel=document.getElementById('yearLabel'); if(yLabel) yLabel.textContent=y;
+  var prev=document.getElementById('prevYear'), next=document.getElementById('nextYear');
+  function go(y2,m2){
+    var nu=new URL(location.href);
+    nu.searchParams.set('y',String(y2));
+    nu.searchParams.set('m',String(m2));
+    nu.searchParams.set('lang',lang);
+    location.href=nu.toString();
+  }
+  if(prev) prev.addEventListener('click', e=>{e.preventDefault(); go(y-1,m);});
+  if(next) next.addEventListener('click', e=>{e.preventDefault(); go(y+1,m);});
+
+  var brandText=document.querySelector('.brand span:last-child'); if(brandText) brandText.textContent=I.brand;
+
+  /* 요일 헤더 */
+  var head=document.getElementById('weekday-head');
+  if(head){ head.innerHTML=''; I.daysShort.forEach(d=>{ var dv=document.createElement('div'); dv.textContent=d; head.appendChild(dv); }); }
+
+  /* 월바 */
+  var mbar=document.getElementById('monthbar');
+  if(mbar){
+    mbar.innerHTML='';
+    for(let i=1;i<=12;i++){
+      let a=document.createElement('a'); a.href='#'; a.textContent=I.monthsShort[i-1];
+      if(i===m) a.className='active';
+      a.addEventListener('click', e=>{e.preventDefault(); go(y,i);});
+      mbar.appendChild(a);
+    }
+  }
+
+  /* 문서 제목 */
+  function setPageTitle(yy,mm){
+    var nice=(lang==='es'||lang==='en'||lang==='zh') ? I.title(yy, I.monthsFull[mm-1]) : I.title(yy, mm);
+    document.title=I.brand+' - '+nice;
+  }
+
+  /* 그리드 기본 렌더 */
+  var dayMap=Object.create(null);
+  function renderGrid(){
+    var grid=document.getElementById('grid'); if(!grid) return;
+    grid.innerHTML='';
+    var first=new Date(y,m-1,1), start=first.getDay(), days=new Date(y,m,0).getDate();
+    var cells=[];
+    for(let s=0;s<start;s++) cells.push({empty:true});
+    for(let d=1; d<=days; d++) cells.push({empty:false,d});
+    while(cells.length%7!==0) cells.push({empty:true});
+
+    cells.forEach(c=>{
+      var cell=document.createElement('div'); cell.className='cell';
+      if(c.empty){ grid.appendChild(cell); return; }
+
+      var info=dayMap[c.d]||{};
+      var el = info.href ? document.createElement('a') : document.createElement('div');
+      el.className='cellbox';
+      if(info.href){ el.href=info.href; el.target='_blank'; el.rel='noopener'; }
+
+      var badge=document.createElement('div'); badge.className='dnum-badge'; badge.textContent=c.d; el.appendChild(badge);
+      var center=document.createElement('div'); center.className='center';
+      var tEl=document.createElement('div'); tEl.className='title-center'; tEl.textContent=info.title||''; center.appendChild(tEl);
+      if(info.ref){ var r=document.createElement('div'); r.className='ref'; r.textContent=info.ref; center.appendChild(r); }
+      el.appendChild(center);
+      cell.appendChild(el); grid.appendChild(cell);
+    });
+
+    setPageTitle(y,m);
+  }
+
+  /* 내장 JSON 데이터 읽기 */
+  (function loadEmbedJson(){
+    var raw=document.getElementById('SOW_EMBED_DATA')?.textContent?.trim() || '';
+    if(!raw) return;
+    try{
+      var obj=JSON.parse(raw);
+      var key=y+'-'+String(m).padStart(2,'0')+':'+lang;
+      var arr=obj[key];
+      if(Array.isArray(arr)){
+        arr.forEach(row=>{
+          var d=parseInt((row[0]||'').replace(/^0+/,'')||row[0],10);
+          if(!(d>=1&&d<=31)) return;
+          dayMap[d]={ title:row[1]||'', ref:row[2]||'', href:(row[3]||'') };
+        });
+      }
+    }catch(e){}
+  })();
+
+  /* 외부 data 파일 로드(있을 때만) */
+  function parseText(t){
+    t.replace(/\r\n?/g,'\n').split('\n').forEach(line=>{
+      if(!line || /^\s*#/.test(line)) return;
+      var parts=line.split('|').map(s=>(s||'').trim());
+      if(parts.length<2) return;
+      var d=parseInt((parts[0]||'').replace(/^0+/,'')||parts[0],10);
+      if(!(d>=1 && d<=31)) return;
+      var title=parts[1]||'', ref=(parts[2]||''), href='';
+      for(let i=3;i<parts.length;i++){ if(parts[i]){ href=parts[i]; break; } }
+      dayMap[d]={title,ref,href};
+    });
+  }
+  function parseJson(txt){
+    try{
+      var obj=JSON.parse(txt);
+      var key=y+'-'+String(m).padStart(2,'0')+':'+lang;
+      var arr=obj[key]; if(!Array.isArray(arr)) return false;
+      arr.forEach(row=>{
+        var d=parseInt((row[0]||'').replace(/^0+/,'')||row[0],10);
+        if(!(d>=1 && d<=31)) return;
+        var title=row[1]||'', ref=row[2]||'', href='';
+        for(let i=3;i<row.length;i++){ if(row[i]){ href=row[i]; break; } }
+        dayMap[d]={title,ref,href};
+      });
+      return true;
+    }catch(e){ return false; }
+  }
+  function tryFetch(url){
+    return fetch(url+'?v='+Date.now(),{cache:'no-store'})
+      .then(r=>r.ok?r.text():'').catch(()=> '');
+  }
+  function loadExternal(){
+    var mm=String(m).padStart(2,'0');
+    var list=[
+      'data/'+y+'-'+mm+'.'+lang+'.txt',
+      'data/'+y+'-'+mm+'.ko.txt',
+      'data/'+y+'-'+mm+'.txt',
+      'data/'+y+'-'+mm+'.json'
+    ];
+    (function next(i){
+      if(i>=list.length){ renderGrid(); return; }
+      tryFetch(list[i]).then(text=>{
+        if(!text){ next(i+1); return; }
+        if(/\.json(\?|$)/.test(list[i])){ if(!parseJson(text)){ next(i+1); return; } }
+        else parseText(text);
+        renderGrid(); // 첫 성공 시 렌더
+      }).catch(()=> next(i+1));
+    })(0);
+  }
+
+  /* 언어 버튼/내부 링크 보정(요구사항 2) */
+  function wireLangLinks(){
+    const q=new URLSearchParams(location.search);
+    const yy=+(q.get('y')||y), mm2=+(q.get('m')||m), L=lang;
+    document.querySelectorAll('[data-lang]').forEach(a=>{
+      const tgt=(a.dataset.lang||'').toLowerCase(); if(!tgt) return;
+      a.href=`?y=${yy}&m=${mm2}&lang=${tgt}`;
+      if(tgt===L) a.setAttribute('aria-current','page');
+    });
+    document.querySelectorAll('a[href]').forEach(a=>{
+      const href=a.getAttribute('href')||'';
+      if(!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+      const u=new URL(href, location.origin);
+      if(!u.searchParams.has('lang')) u.searchParams.set('lang', L);
+      a.href=u.pathname+'?'+u.searchParams.toString();
+    });
+  }
+
+  /* 실행 순서 */
+  renderGrid();
+  wireLangLinks();
+  loadExternal();
+})();
+</script>
+</body>
+</html>
