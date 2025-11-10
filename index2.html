@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>믿음으로 쓰는 성경 · Hub</title>
+<meta name="color-scheme" content="light dark" />
+<style>
+:root{--fg:#111827;--muted:#6b7280;--line:#e5e7eb;--accent:#0ea5e9;--bg:#ffffff}
+@media (prefers-color-scheme: dark){
+  :root{--fg:#e5e7eb;--muted:#9ca3af;--line:#334155;--accent:#38bdf8;--bg:#0b0f14}
+}
+*{box-sizing:border-box}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Apple SD Gothic Neo,Noto Sans,Arial,sans-serif}
+a{color:inherit;text-decoration:none}
+a:focus,a:hover{text-decoration:underline}
+
+/* 상단 제목: 숨기고 공간 유지 */
+h1#page-title,h1.page-title{
+  visibility:hidden; height:clamp(28px,5vw,56px);
+  margin:0 0 10px; line-height:1;
+}
+
+/* ===== 상단 네비: 단일 다크 스타일 ===== */
+.site-nav{background:#0f172a;color:#fff;position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.08)}
+.site-nav nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:12px 10px}
+.site-nav a{color:#fff;opacity:.9;padding:4px 6px;border-radius:8px}
+.site-nav a:hover,.site-nav a:focus{opacity:1;text-decoration:underline}
+.site-nav .sep{margin:0 6px;opacity:.35}
+.site-nav small{opacity:.85}
+.site-nav .group .label{font-weight:700;margin-right:4px}
+.site-nav .inline-links{font-size:.95em}
+
+/* 본문 안내 박스 */
+.wrap{max-width:980px;margin:24px auto;padding:0 14px}
+.card{border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h2{margin:.2em 0 .6em;font-size:1.15rem}
+.row{display:flex;flex-wrap:wrap;gap:12px}
+.btn{display:inline-block;border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.95em;color:var(--muted)}
+.small{font-size:.92em;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<h1 id="page-title">숨김제목(여백용)</h1>
+
+<header class="site-nav" role="navigation">
+  <nav aria-label="Top Navigation">
+    <!-- 믿음으로 쓰는 성경 / 필사 성경 -->
+    <span class="group">
+      <a class="label" id="nav-faith-bible" href="#">믿음으로 쓰는 성경</a>
+      <span class="sep" aria-hidden="true">|</span>
+      <a id="nav-handcopy" href="#">필사 성경</a>
+    </span>
+
+    <span class="sep" aria-hidden="true">|</span>
+
+    <!-- 말씀따라 흐르는 샘물 (언어 묶음) -->
+    <span class="group">
+      <a class="label" id="sw-home" href="#">말씀따라 흐르는 샘물</a>
+      <small class="inline-links" aria-label="Streams of the Word languages">
+        ( <a data-lang="ko" id="sw-ko" href="#">한국어</a>
+        <span class="sep">ㅣ</span>
+        <a data-lang="en" id="sw-en" href="#">English</a>
+        <span class="sep">ㅣ</span>
+        <a data-lang="es" id="sw-es" href="#">Español</a>
+        <span class="sep">ㅣ</span>
+        <a data-lang="zh" id="sw-zh" href="#">中文</a> )
+      </small>
+    </span>
+
+    <span class="sep" aria-hidden="true">|</span>
+
+    <!-- 블로그 -->
+    <span class="group">
+      <span class="label">블로그</span>
+      <small class="inline-links" aria-label="Blogs">
+        ( <a id="nav-naver" href="#">네이버</a>
+        <span class="sep">ㅣ</span>
+        <a id="nav-tistory" href="#">티스토리</a> )
+      </small>
+    </span>
+  </nav>
+</header>
+
+<main class="wrap">
+  <div class="card">
+    <h2>빠른 확인</h2>
+    <p class="small">아래 버튼을 누르면 현재 설정된 연·월·언어로 “말씀따라 흐르는 샘물” 달력을 바로 엽니다.</p>
+    <div class="row">
+      <a class="btn" id="btn-open-sw" href="#">🔎 달력 열기</a>
+      <span class="mono" id="state"></span>
+    </div>
+  </div>
+</main>
+
+<script>
+/* ========= CONFIG (필요시 이 값만 수정) ========= */
+const CONFIG = {
+  SW_BASE: "https://noemisuh.github.io/streams-of-the-word/",
+  DEFAULT_YEAR: 2025,
+  DEFAULT_MONTH: 9,     // 1~12
+  DEFAULT_LANG: "ko",
+  FAITH_BIBLE_URL: "https://noemisuh.github.io/by-faith-scripture/",
+  HANDCOPY_URL: "https://noemisuh.github.io/faith-bible-copy/",
+  NAVER_URL: "https://blog.naver.com/noemisuh",
+  TISTORY_URL: "https://noemisuh.tistory.com/"
+};
+/* ================================================ */
+
+function getQS(){
+  const u = new URL(location.href);
+  const y = +(u.searchParams.get("y") || CONFIG.DEFAULT_YEAR);
+  const m = +(u.searchParams.get("m") || CONFIG.DEFAULT_MONTH);
+  const lang = (u.searchParams.get("lang") || CONFIG.DEFAULT_LANG).toLowerCase();
+  return {y,m,lang};
+}
+function swURL(lang, y, m){
+  const qs = new URLSearchParams({ y:String(y), m:String(m), lang });
+  return CONFIG.SW_BASE + "?" + qs.toString();
+}
+
+(function init(){
+  const {y,m,lang} = getQS();
+
+  // 상단 링크 절대경로로 세팅 (404 방지)
+  document.getElementById("nav-faith-bible").href = CONFIG.FAITH_BIBLE_URL;
+  document.getElementById("nav-handcopy").href   = CONFIG.HANDCOPY_URL;
+  document.getElementById("nav-naver").href      = CONFIG.NAVER_URL;
+  document.getElementById("nav-tistory").href    = CONFIG.TISTORY_URL;
+
+  document.getElementById("sw-home").href = swURL(lang, y, m);
+  document.getElementById("sw-ko").href   = swURL("ko", y, m);
+  document.getElementById("sw-en").href   = swURL("en", y, m);
+  document.getElementById("sw-es").href   = swURL("es", y, m);
+  document.getElementById("sw-zh").href   = swURL("zh", y, m);
+
+  document.getElementById("btn-open-sw").href = swURL(lang, y, m);
+  document.getElementById("state").textContent = `y=${y}  m=${m}  lang=${lang}`;
+})();
+</script>
+</body>
+</html>
