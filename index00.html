@@ -91,9 +91,89 @@ a[href*="streams-of-the-word"]{
 .site-nav > nav > .sep{
   margin: 0 4px !important;    /* 전체 그룹 구분자 간격 축소 */
 } 
+
+ /* === 상단 네비: ( ) 안 언어/블로그 링크 간격 '확실히' 좁히기 === */
+.site-nav small.inline-links{
+  display: inline-flex;        /* 인라인처럼 보이되, 요소 간 여백 제어 */
+  align-items: center;
+  gap: 0;                      /* gap으로 생길 여백 없음 */
+  font-size: 0;                /* 괄호와 줄바꿈 사이 공백 문자 폭 0으로 */
+}
+
+.site-nav small.inline-links a,
+.site-nav small.inline-links .sep {
+  font-size: .95rem;           /* 실제 글자 크기 복원 */
+  line-height: 1;
+}
+
+/* 링크 여백 최소화: 기본 a padding을 덮어씀 */
+.site-nav small.inline-links a{
+  padding: 0 2px !important;   /* 핵심: 좌우 2px */
+  margin: 0 !important;
+}
+
+/* 구분자(ㅣ) 좌우 여백도 축소 */
+.site-nav small.inline-links .sep{
+  margin: 0 3px !important;    /* 필요하면 2px로 더 줄일 수 있음 */
+  opacity: .5;
+}
+
+/* 그룹들 사이의 '|' 구분자 간격도 살짝 축소 */
+.site-nav > nav > .sep{
+  margin: 0 4px !important;
+} 
+
+  /* 상단 제목(H1) 전부 숨김 */
+#title-wrap,
+h1#page-title,
+h1.page-title,
+.calendar-title,
+.page-heading{
+  display:none !important;
+}
+
+ /* top 레이아웃 정렬 고정 */
+.top{ display:flex; flex-wrap:wrap; }
+
+/* 년도 바를 한 줄 전체로 + 중앙 정렬 */
+.top .yearbar{
+  order: 2;
+  width: 100% !important;
+  display: flex !important;
+  justify-content: center !important;
+  align-items: center;
+  gap: 12px;
+  margin: 8px 0;
+  margin-left: 0 !important; /* 기존 오른쪽 밀기 제거 */
+}
+
+/* 브랜드(제목 아이콘 줄) → 첫 줄 */
+.top .brand{ order:1; }
+
+/* 월 바 → 세 번째 줄 */
+.top .monthbar{ order:3; width:100%; } 
+
+ #title-wrap, h1#page-title, h1.page-title, .calendar-title, .page-heading{
+  display:none !important;
+}
+
+  .top{display:flex;flex-wrap:wrap;}
+.top .yearbar{
+  order:2;width:100%!important;display:flex!important;
+  justify-content:center!important;align-items:center;gap:12px;
+  margin:8px 0;margin-left:0!important;
+}
+.top .brand{order:1;}
+.top .monthbar{order:3;width:100%;}
+
+  .site-nav small.inline-links{display:inline-flex;align-items:center;gap:0;font-size:0;}
+.site-nav small.inline-links a,
+.site-nav small.inline-links .sep{font-size:.95rem;line-height:1;}
+.site-nav small.inline-links a{padding:0 2px!important;margin:0!important;}
+.site-nav small.inline-links .sep{margin:0 3px!important;opacity:.5;}
+.site-nav>nav>.sep{margin:0 4px!important;}
 </style>
 </head>
-
 <body>
 
 <!-- ===================== 상단 네비 ===================== -->
@@ -345,6 +425,5 @@ a[href*="streams-of-the-word"]{
   loadExternal();
 })();
 </script>
-
 </body>
 </html>
