@@ -198,19 +198,22 @@ h1#page-title, h1.page-title, .cal-title-legacy{ display:none !important; }
 <!-- ===== 상단 네비: 통합 버전 ===== -->
 <header class="site-nav" role="navigation" aria-label="Global">
   <nav>
-    <!-- 브랜드/섹션 라벨: 글자 작게(다른 항목과 균형) -->
-    <span class="group">
-      <span class="label">말씀따라 흐르는 샘물</span>
-      <small class="inline-links" aria-label="Streams of the Word languages">
-        ( <a data-lang="ko" href="?lang=ko">한국어</a>
-        <span class="sep">ㅣ</span>
-        <a data-lang="en" href="?lang=en">English</a>
-        <span class="sep">ㅣ</span>
-        <a data-lang="es" href="?lang=es">Español</a>
-        <span class="sep">ㅣ</span>
-        <a data-lang="zh" href="?lang=zh">中文</a> )
-      </small>
-    </span>
+   <!-- 말씀따라 흐르는 샘물 (언어 묶음) -->
+<span class="group">
+  <a class="label"
+     href="https://noemisuh.github.io/streams-of-the-word/?y=2025&m=9&lang=es">
+     말씀따라 흐르는 샘물
+  </a>
+  <small class="inline-links" aria-label="Streams of the Word languages">
+    ( <a data-lang="ko" href="https://noemisuh.github.io/streams-of-the-word/?y=2025&m=9&lang=ko">한국어</a>
+    <span class="sep">ㅣ</span>
+    <a data-lang="en" href="https://noemisuh.github.io/streams-of-the-word/?y=2025&m=9&lang=en">English</a>
+    <span class="sep">ㅣ</span>
+    <a data-lang="es" href="https://noemisuh.github.io/streams-of-the-word/?y=2025&m=9&lang=es">Español</a>
+    <span class="sep">ㅣ</span>
+    <a data-lang="zh" href="https://noemisuh.github.io/streams-of-the-word/?y=2025&m=9&lang=zh">中文</a> )
+  </small>
+</span>
 
     <span class="sep">|</span>
 
@@ -539,6 +542,19 @@ h1#page-title, h1.page-title, .cal-title-legacy{ display:none !important; }
     else head.prepend(wrap);
   }
 })();
+</script>
+
+  <script>
+  const SW_BASE = "https://noemisuh.github.io/streams-of-the-word/";
+  const DEFAULT_QS = new URLSearchParams({ y: 2025, m: 9 });
+
+  function sw(hrefLang){ 
+    const qs = new URLSearchParams(DEFAULT_QS);
+    if (hrefLang) qs.set('lang', hrefLang);
+    return SW_BASE + "?" + qs.toString();
+  }
+
+  // 예: document.querySelector('a.label').href = sw('es');
 </script>
 </body>
 </html>
