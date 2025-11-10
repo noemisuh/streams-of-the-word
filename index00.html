@@ -7,27 +7,37 @@
 <meta name="color-scheme" content="light dark" />
 
 <style>
-/* ===================== 기본 컬러/타이포 ===================== */
-:root{--fg:#111827;--muted:#6b7280;--line:#e5e7eb;--line-strong:#cbd5e1;--accent:#0ea5e9;--bg:#ffffff;--box:#ffffff;--bgsoft:#f8fafc}
+/* ===================== 기본 컬러 / 타이포 ===================== */
+:root{
+  --fg:#111827; --muted:#6b7280; --line:#e5e7eb; --line-strong:#cbd5e1;
+  --accent:#0ea5e9; --bg:#ffffff; --box:#ffffff; --bgsoft:#f8fafc; --nav:#0f172a;
+}
 @media (prefers-color-scheme: dark){
-  :root{--fg:#e5e7eb;--muted:#9ca3af;--line:#334155;--line-strong:#475569;--accent:#38bdf8;--bg:#0b0f14;--box:#0f1720;--bgsoft:#0f1720}
+  :root{
+    --fg:#e5e7eb; --muted:#9ca3af; --line:#334155; --line-strong:#475569;
+    --accent:#38bdf8; --bg:#0b0f14; --box:#0f1720; --bgsoft:#0f1720; --nav:#0b1220;
+  }
 }
 *{box-sizing:border-box}
-html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,"Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif}
-a{color:#0ea5e9}
+html,body{
+  margin:0; padding:0; background:var(--bg); color:var(--fg);
+  font:15px/1.5 ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,
+  "Noto Sans KR","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+}
+a{color:var(--accent)}
 
 /* ===================== 레이아웃 ===================== */
 .wrap{max-width:1080px;margin:0 auto;padding:16px}
 .top{display:flex;flex-wrap:wrap;align-items:center;gap:12px;margin:14px 0 10px}
 .brand{font-weight:700;font-size:1.15rem;display:flex;align-items:center;gap:8px}
-.brand .dot{width:10px;height:10px;border-radius:999px;background:#0ea5e9;display:inline-block}
+.brand .dot{width:10px;height:10px;border-radius:999px;background:var(--accent);display:inline-block}
 .yearbar{display:flex;align-items:center;gap:12px;font-weight:600}
 .yearbar a{color:#0f172a;text-decoration:none;border:1px solid #e5e7eb;border-radius:8px;padding:2px 8px}
 .monthbar{display:flex;flex-wrap:wrap;gap:8px;width:100%}
 .monthbar a{padding:4px 8px;border-radius:8px;text-decoration:none;border:1px solid #e5e7eb;color:#0f172a}
-.monthbar a.active{background:#0ea5e9;color:#fff;border-color:#0ea5e9}
+.monthbar a.active{background:var(--accent);color:#fff;border-color:var(--accent)}
 
-/* 달력 */
+/* ===================== 달력 구조 ===================== */
 .cal{margin-top:10px;border:1px solid var(--line-strong);border-radius:14px;overflow:hidden;background:var(--box)}
 .cal .head{display:grid;grid-template-columns:repeat(7,1fr);border-bottom:1px solid var(--line-strong);background:var(--bgsoft)}
 .cal .head div{padding:10px 8px;text-align:center;font-weight:700;color:var(--muted)}
@@ -35,157 +45,79 @@ a{color:#0ea5e9}
 .cell{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px;position:relative}
 .grid .cell:nth-child(7n){border-right:none}
 
-/* 캘 셀 카드 */
-.cellbox{position:relative;display:flex;flex-direction:column;width:100%;min-height:140px;padding:28px 16px 16px;border:1px solid var(--line);border-radius:14px;background:rgba(14,165,233,.10);text-decoration:none;color:inherit;transition:box-shadow .15s,border-color .15s,background .15s}
-a.cellbox:hover{box-shadow:0 2px 10px rgba(0,0,0,.06);border-color:var(--accent);background:rgba(14,165,233,.14)}
-.dnum-badge{position:absolute;left:10px;top:10px;z-index:3;font-size:12px;color:var(--muted);padding:2px 6px;border:1px solid var(--line);border-radius:8px;background:var(--box)}
+/* ===================== 캘 셀 카드 ===================== */
+.cellbox{
+  position:relative;display:flex;flex-direction:column;width:100%;min-height:140px;
+  padding:28px 16px 16px;border:1px solid var(--line);border-radius:14px;
+  background:rgba(14,165,233,.10);text-decoration:none;color:inherit;
+  transition:box-shadow .15s,border-color .15s,background .15s;
+}
+a.cellbox:hover{
+  box-shadow:0 2px 10px rgba(0,0,0,.06);
+  border-color:var(--accent);
+  background:rgba(14,165,233,.14);
+}
+.dnum-badge{
+  position:absolute;left:10px;top:10px;z-index:3;font-size:12px;color:var(--muted);
+  padding:2px 6px;border:1px solid var(--line);border-radius:8px;background:var(--box);
+}
 .center{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:6px 4px}
-.title-center{max-width:100%;font-size:16px;line-height:1.4;white-space:normal;word-break:keep-all;text-wrap:balance;overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;margin:0}
+.title-center{
+  max-width:100%;font-size:16px;line-height:1.4;white-space:normal;word-break:keep-all;text-wrap:balance;
+  overflow:hidden;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;margin:0;
+}
 .ref{margin-top:8px;font-size:12px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 @media (prefers-color-scheme: dark){
   .cellbox{background:rgba(56,189,248,.12)}
   .dnum-badge{background:#0f1720;border-color:#334155;color:#9ca3af}
 }
 
-/* ===================== 상단 네비(공통) ===================== */
-.site-nav{background:#0f172a;color:#fff;position:sticky;top:0;z-index:20;border-bottom:1px solid rgba(255,255,255,.08)}
-.site-nav nav{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;align-items:center;padding:12px}
-.site-nav a{color:#fff;text-decoration:none;opacity:.9;padding:4px 6px;border-radius:8px}
-.site-nav a:hover,.site-nav a:focus{opacity:1;text-decoration:underline}
-.site-nav a[aria-current="page"]{opacity:1;background:rgba(255,255,255,.12)}
-.site-nav .sep{margin:0 6px;opacity:.35}
-.site-nav small{opacity:.8;font-size:.9em}
-.site-nav .group .label{font-weight:600;margin-right:4px}
-.site-nav .inline-links{font-size:.95em;opacity:.85}
-
-/* ===================== 요구사항 1,3 적용 ===================== */
-/* (1) 페이지 제목들 전부 감춤(중복 제거) */
-h1#site-title, h1#calendar-title, .page-heading, h1.page-title, #page-title, .calendar-title {
-  display:none !important;
-}
-/* (1) 년도 화살표 가운데 배치 */
-.top .yearbar { margin-left:0 !important; justify-content:center !important; }
-
-/* (3) 네비의 “말씀따라 흐르는 샘물”은 클릭 불가(모양 그대로) */
-a[href*="streams-of-the-word"]{
-  pointer-events:none; cursor:default; text-decoration:none; opacity:1;
+/* ===================== 반응형 ===================== */
+:root{--gap:10px;--cell-h:118px;--head-h:38px}
+.cal .head{gap:var(--gap);height:var(--head-h);align-items:center;font-weight:700;text-align:center;color:#0f172a}
+.cal .grid{grid-template-columns:repeat(7,minmax(0,1fr));gap:var(--gap);width:100%}
+.cal .grid>*{min-width:0;height:var(--cell-h);padding:10px;border:1px solid #e5e7eb;border-radius:12px;background:#fff;display:flex;flex-direction:column;justify-content:space-between;overflow:hidden}
+@media (max-width:480px){
+  :root{--gap:8px;--cell-h:110px;--head-h:34px}
+  .wrap{padding:12px}
+  .monthbar{gap:6px}
 }
 
-/* 반응형 */
-:root{ --gap: 10px; --cell-h: 118px; --head-h: 38px; }
-.cal .head{ gap:var(--gap); height:var(--head-h); align-items:center; font-weight:700; text-align:center; color:#0f172a; }
-.cal .grid{ grid-template-columns:repeat(7,minmax(0,1fr)); gap:var(--gap); width:100%; }
-.cal .grid > *{ min-width:0; height:var(--cell-h); padding:10px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; }
-@media (max-width:480px){ :root{ --gap:8px; --cell-h:110px; --head-h:34px; } .wrap{padding:12px} .monthbar{gap:6px} }
+/* ===================== 상단 네비 (최신 통합본) ===================== */
+/* 페이지 제목 숨김 */
+h1#page-title, h1.page-title { display:none !important; }
 
- /* ── 상단 네비: 언어/블로그 ( ) 안 링크 간격 타이트하게 ── */
-.site-nav .inline-links a{
-  padding: 0 2px !important;   /* 기존 4px 6px → 2px */
-  margin: 0 !important;
+/* 상단 네비 스타일 */
+.site-nav{
+  background:var(--nav); color:#fff; position:sticky; top:0; z-index:50;
+  border-bottom:1px solid rgba(255,255,255,.08);
 }
-.site-nav .inline-links .sep{
-  margin: 0 3px !important;    /* 기존 6px → 3px */
-  opacity: .45;                 /* 구분선은 살짝 옅게 */
+.site-nav nav{
+  display:flex; flex-wrap:wrap; gap:14px;
+  justify-content:center; align-items:center;
+  padding:14px 10px; line-height:1;
 }
-/* 그룹들 사이 | 구분자도 살짝 타이트 */
-.site-nav > nav > .sep{
-  margin: 0 4px !important;    /* 전체 그룹 구분자 간격 축소 */
-} 
-
- /* === 상단 네비: ( ) 안 언어/블로그 링크 간격 '확실히' 좁히기 === */
-.site-nav small.inline-links{
-  display: inline-flex;        /* 인라인처럼 보이되, 요소 간 여백 제어 */
-  align-items: center;
-  gap: 0;                      /* gap으로 생길 여백 없음 */
-  font-size: 0;                /* 괄호와 줄바꿈 사이 공백 문자 폭 0으로 */
+.site-nav a{
+  color:#fff; text-decoration:none; opacity:.92; padding:2px 4px; border-radius:8px;
 }
+.site-nav a:hover,.site-nav a:focus{ opacity:1; text-decoration:underline; }
+.site-nav .group{ display:inline-flex; align-items:baseline; gap:8px; }
+.site-nav .label{ font-weight:700; opacity:1; }
+.site-nav .brand{ font-size:1.55rem; font-weight:800; letter-spacing:.2px; }
+@media (max-width:719px){ .site-nav .brand{ font-size:1.35rem; } }
+.site-nav .inline-links{ font-size:.98rem; opacity:.92; }
+.site-nav .sep{ margin:0 6px; opacity:.6; }
 
-.site-nav small.inline-links a,
-.site-nav small.inline-links .sep {
-  font-size: .95rem;           /* 실제 글자 크기 복원 */
-  line-height: 1;
-}
-
-/* 링크 여백 최소화: 기본 a padding을 덮어씀 */
-.site-nav small.inline-links a{
-  padding: 0 2px !important;   /* 핵심: 좌우 2px */
-  margin: 0 !important;
-}
-
-/* 구분자(ㅣ) 좌우 여백도 축소 */
-.site-nav small.inline-links .sep{
-  margin: 0 3px !important;    /* 필요하면 2px로 더 줄일 수 있음 */
-  opacity: .5;
-}
-
-/* 그룹들 사이의 '|' 구분자 간격도 살짝 축소 */
-.site-nav > nav > .sep{
-  margin: 0 4px !important;
-} 
-
-  /* 상단 제목(H1) 전부 숨김 */
-#title-wrap,
-h1#page-title,
-h1.page-title,
-.calendar-title,
-.page-heading{
-  display:none !important;
-}
-
- /* top 레이아웃 정렬 고정 */
-.top{ display:flex; flex-wrap:wrap; }
-
-/* 년도 바를 한 줄 전체로 + 중앙 정렬 */
-.top .yearbar{
-  order: 2;
-  width: 100% !important;
-  display: flex !important;
-  justify-content: center !important;
-  align-items: center;
-  gap: 12px;
-  margin: 8px 0;
-  margin-left: 0 !important; /* 기존 오른쪽 밀기 제거 */
-}
-
-/* 브랜드(제목 아이콘 줄) → 첫 줄 */
-.top .brand{ order:1; }
-
-/* 월 바 → 세 번째 줄 */
-.top .monthbar{ order:3; width:100%; } 
-
- #title-wrap, h1#page-title, h1.page-title, .calendar-title, .page-heading{
-  display:none !important;
-}
-
-  .top{display:flex;flex-wrap:wrap;}
-.top .yearbar{
-  order:2;width:100%!important;display:flex!important;
-  justify-content:center!important;align-items:center;gap:12px;
-  margin:8px 0;margin-left:0!important;
-}
-.top .brand{order:1;}
-.top .monthbar{order:3;width:100%;}
-
-  .site-nav small.inline-links{display:inline-flex;align-items:center;gap:0;font-size:0;}
-.site-nav small.inline-links a,
-.site-nav small.inline-links .sep{font-size:.95rem;line-height:1;}
-.site-nav small.inline-links a{padding:0 2px!important;margin:0!important;}
-.site-nav small.inline-links .sep{margin:0 3px!important;opacity:.5;}
-.site-nav>nav>.sep{margin:0 4px!important;}
+/* 연/월 화살표 크게 */
+.year-nav button, .year-nav .arrow{ font-size:1.25rem; padding:0 .4em; line-height:1.1; }
 </style>
 </head>
+  
 <body>
-
-<!-- ===================== 상단 네비 ===================== -->
-<header class="site-nav" role="navigation" aria-label="사이트 공통 메뉴">
+<header class="site-nav" role="navigation" aria-label="Global">
   <nav>
-    <a href="https://noemisuh.github.io/faith-scripture/">믿음으로 쓰는 성경</a>
-    <span class="sep" aria-hidden="true">|</span>
-
-    <a href="https://noemisuh.github.io/faith-bible-copy/">필사 성경</a>
-    <span class="sep" aria-hidden="true">|</span>
-
- <span class="group">
+    <!-- 브랜드 + 언어 묶음 -->
+    <span class="group">
       <span class="brand">말씀따라 흐르는 샘물</span>
       <small class="inline-links" aria-label="Streams of the Word languages">
         ( <a data-lang="ko" href="#">한국어</a>
