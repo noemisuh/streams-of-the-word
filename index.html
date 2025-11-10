@@ -229,11 +229,6 @@ h1.page-title,
   </nav>
 </header>
 
-<!-- 페이지 제목: 말씀따라 흐르는 샘물 (wrap 위에 추가) -->
-<header class="page-heading" aria-labelledby="calendarTitle">
-  <h1 id="calendarTitle" class="calendar-title">말씀따라 흐르는 샘물</h1>
-</header>
-
 <div class="wrap">
   <header id="title-wrap"><h1 id="page-title" class="page-title"></h1></header>
   <section class="top" aria-label="상단">
@@ -595,6 +590,48 @@ h1.page-title,
   // 문서 lang 동기화
   document.documentElement.lang = lang;
 })();
+  
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const ph = document.querySelector('.page-heading');
+    if (ph) ph.remove();
+    // 혹시 다른 곳에 calendarTitle이 남았으면 정리
+    document.querySelectorAll('[aria-labelledby="calendarTitle"]').forEach(el=>{
+      el.removeAttribute('aria-labelledby');
+    });
+  });  
+
+  <script>
+/* URL의 현재 y,m,lang 읽기 */
+const qp   = new URLSearchParams(location.search);
+const y    = +(qp.get('y') || new Date().getFullYear());
+const m    = +(qp.get('m') || (new Date().getMonth()+1));
+const lang = qp.get('lang') || 'ko';
+
+/* 1) 언어 네비: 기존 HTML 그대로. data-lang이 없어도 텍스트로 판별 */
+document.querySelectorAll('.lang-nav a').forEach(a=>{
+  let L = a.dataset?.lang;
+  if(!L){
+    const t = a.textContent.trim();
+    if(t.includes('한국'))   L = 'ko';
+    else if(t.toLowerCase().includes('español')) L = 'es';
+    else if(t.includes('中文'))  L = 'zh';
+    else if(t.toLowerCase().includes('english')) L = 'en';
+  }
+  if(!L) return;
+  a.href = `?y=${y}&m=${m}&lang=${L}`;
+  if(L === lang) a.setAttribute('aria-current','page');
+});
+
+/* 2) 내부 링크 전체에 lang 보장(같은 사이트 내부만) */
+document.querySelectorAll('a[href]').forEach(a=>{
+  const href = a.getAttribute('href');
+  // 절대외부(http) 제외 + 메일/전화 제외
+  if(!href || href.startsWith('http') || href.startsWith('mailto:') || href.startsWith('tel:')) return;
+  const u = new URL(href, location.origin);
+  if(!u.searchParams.has('lang')) u.searchParams.set('lang', lang);
+  a.href = u.pathname + '?' + u.searchParams.toString();
+});
 </script>
 </body>
 </html>
