@@ -77,6 +77,20 @@ a[href*="streams-of-the-word"]{
 .cal .grid{ grid-template-columns:repeat(7,minmax(0,1fr)); gap:var(--gap); width:100%; }
 .cal .grid > *{ min-width:0; height:var(--cell-h); padding:10px; border:1px solid #e5e7eb; border-radius:12px; background:#fff; display:flex; flex-direction:column; justify-content:space-between; overflow:hidden; }
 @media (max-width:480px){ :root{ --gap:8px; --cell-h:110px; --head-h:34px; } .wrap{padding:12px} .monthbar{gap:6px} }
+
+ /* ── 상단 네비: 언어/블로그 ( ) 안 링크 간격 타이트하게 ── */
+.site-nav .inline-links a{
+  padding: 0 2px !important;   /* 기존 4px 6px → 2px */
+  margin: 0 !important;
+}
+.site-nav .inline-links .sep{
+  margin: 0 3px !important;    /* 기존 6px → 3px */
+  opacity: .45;                 /* 구분선은 살짝 옅게 */
+}
+/* 그룹들 사이 | 구분자도 살짝 타이트 */
+.site-nav > nav > .sep{
+  margin: 0 4px !important;    /* 전체 그룹 구분자 간격 축소 */
+} 
 </style>
 </head>
 
@@ -92,29 +106,18 @@ a[href*="streams-of-the-word"]{
     <span class="sep" aria-hidden="true">|</span>
 
     <!-- 말씀따라 흐르는 샘물 (언어 묶음) -->
-    <span class="group">
-      <a class="label" href="https://noemisuh.github.io/streams-of-the-word/">말씀따라 흐르는 샘물</a>
-      <small class="inline-links" aria-label="Streams of the Word languages">
-        ( <a data-lang="ko" href="#">한국어</a>
-        <span class="sep">ㅣ</span>
-        <a data-lang="en" href="#">English</a>
-        <span class="sep">ㅣ</span>
-        <a data-lang="es" href="#">Español</a>
-        <span class="sep">ㅣ</span>
-        <a data-lang="zh" href="#">中文</a> )
-      </small>
-    </span>
+    <small class="inline-links" aria-label="Streams of the Word languages">
+  (<a data-lang="ko" href="#">한국어</a><span class="sep">ㅣ</span>
+   <a data-lang="en" href="#">English</a><span class="sep">ㅣ</span>
+   <a data-lang="es" href="#">Español</a><span class="sep">ㅣ</span>
+   <a data-lang="zh" href="#">中文</a>)
+</small>
 
-    <span class="sep" aria-hidden="true">|</span>
-
-    <!-- 블로그 (네이버 ㅣ 티스토리) -->
-    <span class="group">
-      <span class="label">블로그</span>
-      <small class="inline-links" aria-label="Blogs">
-        ( <a href="https://blog.naver.com/noemisuh" target="_blank" rel="noopener">네이버</a>
-        <span class="sep">ㅣ</span>
-        <a href="https://noemisuh.tistory.com" target="_blank" rel="noopener">티스토리</a> )
-      </small>
+<small class="inline-links" aria-label="Blogs">
+  (<a href="https://blog.naver.com/noemisuh" target="_blank" rel="noopener">네이버</a>
+   <span class="sep">ㅣ</span>
+   <a href="https://noemisuh.tistory.com" target="_blank" rel="noopener">티스토리</a>)
+</small>
     </span>
   </nav>
 </header>
